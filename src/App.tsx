@@ -6,7 +6,7 @@ import { DragonPanel } from './components/dragons/DragonCard';
 import { DragonService } from './services/dragonService';
 
 function App() {
-  const { tick, addResource } = useGameStore();
+  const { tick, addResource, resetGame } = useGameStore();
 
   // Game loop
   useEffect(() => {
@@ -30,6 +30,13 @@ function App() {
     addResource('energy', new Decimal(5));
   };
 
+  const handleResetGame = () => {
+    const confirmed = window.confirm('Are you sure you want to reset the game? This will delete all progress!');
+    if (confirmed) {
+      resetGame();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-lair-900 text-lair-100">
       <div className="container mx-auto px-4 py-8">
@@ -49,10 +56,10 @@ function App() {
           <div className="lg:col-span-1">
             <ResourcePanel className="mb-6" />
 
-            {/* Temporary manual controls for testing */}
+            {/* Admin controls for testing */}
             <div className="card">
               <h3 className="text-lg font-dragon font-semibold mb-3 text-dragon-400">
-                Manual Controls (Testing)
+                Admin Controls
               </h3>
               <div className="space-y-2">
                 <button onClick={handleGenerateMeat} className="btn-primary w-full">
@@ -61,6 +68,20 @@ function App() {
                 <button onClick={handleGenerateEnergy} className="btn-secondary w-full">
                   Generate Energy (+5)
                 </button>
+                <button
+                  onClick={handleResetGame}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                >
+                  Reset Game
+                </button>
+              </div>
+              <div className="mt-3 text-xs text-lair-400">
+                <p>Use these controls to test game progression:</p>
+                <ul className="list-disc list-inside mt-1 space-y-1">
+                  <li>Generate resources to buy first dragons</li>
+                  <li>Reset to test early game balance</li>
+                  <li>Watch unlock progression</li>
+                </ul>
               </div>
             </div>
           </div>
