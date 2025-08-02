@@ -1,6 +1,21 @@
 {
   "dragons": [
     {
+      "id": "dragon_egg",
+      "name": "Dragon Egg",
+      "description": "A mysterious egg that slowly produces meat as it incubates. The foundation of your dragon empire.",
+      "baseCost": 5,
+      "costResource": "meat",
+      "costMultiplier": 1.1,
+      "production": {
+        "resource": "meat",
+        "baseRate": 0.1
+      },
+      "category": "starter",
+      "rarity": 1,
+      "unlockCondition": null
+    },
+    {
       "id": "hatchling",
       "name": "Dragon Hatchling",
       "description": "A small but eager young dragon that produces meat by hunting small creatures.",

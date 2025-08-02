@@ -410,6 +410,32 @@ describe('GameStore', () => {
     });
   });
 
+  describe('Initial Game State', () => {
+    it('should start with a Dragon Egg for bootstrapping', () => {
+      const state = useGameStore.getState();
+
+      expect(state.dragons.dragon_egg).toBe(1);
+    });
+
+    it('should allow Dragon Egg to produce meat immediately', () => {
+      const { calculateDragonProduction } = useGameStore.getState();
+
+      const dragonConfigs = [
+        {
+          id: 'dragon_egg',
+          production: { resource: 'meat', baseRate: 0.1 },
+        },
+      ];
+
+      const initialMeat = useGameStore.getState().resources.meat;
+
+      calculateDragonProduction(dragonConfigs);
+
+      const state = useGameStore.getState();
+      expect(state.resources.meat).toEqual(initialMeat.add(0.1)); // 1 egg * 0.1 rate
+    });
+  });
+
   describe('Game Reset', () => {
     it('should reset game to initial state', () => {
       const { resetGame, addResource, updateSettings } = useGameStore.getState();
@@ -423,6 +449,7 @@ describe('GameStore', () => {
       const state = useGameStore.getState();
       expect(state.resources.meat).toEqual(new Decimal(10));
       expect(state.settings.autoSave).toBe(true);
+      expect(state.dragons.dragon_egg).toBe(1); // Should still have the starter egg
     });
   });
 });

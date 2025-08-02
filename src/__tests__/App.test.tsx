@@ -29,7 +29,9 @@ describe('App', () => {
       ancientPower: new Decimal(0),
       cosmicEssence: new Decimal(0),
     },
-    dragons: {},
+    dragons: {
+      dragon_egg: 1,
+    },
     settings: {
       numberFormat: 'suffix',
     },

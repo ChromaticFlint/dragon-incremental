@@ -41,7 +41,9 @@ const initialGameState: GameState = {
     ancientPower: new Decimal(0),
     cosmicEssence: new Decimal(0),
   },
-  dragons: {},
+  dragons: {
+    dragon_egg: 1, // Start with 1 free Dragon Egg to bootstrap the economy
+  },
   upgrades: [],
   achievements: [],
   evolutions: [],

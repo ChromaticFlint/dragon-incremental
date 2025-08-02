@@ -18,6 +18,7 @@ describe('DragonService', () => {
         cosmicEssence: new Decimal(0),
       },
       dragons: {
+        dragon_egg: 1,
         hatchling: 3,
         egg_layer: 1,
       },
@@ -65,11 +66,11 @@ describe('DragonService', () => {
 
   describe('getDragonById', () => {
     it('should return dragon configuration by id', () => {
-      const dragon = DragonService.getDragonById('hatchling');
-      
+      const dragon = DragonService.getDragonById('dragon_egg');
+
       expect(dragon).toBeDefined();
-      expect(dragon?.id).toBe('hatchling');
-      expect(dragon?.name).toBe('Dragon Hatchling');
+      expect(dragon?.id).toBe('dragon_egg');
+      expect(dragon?.name).toBe('Dragon Egg');
     });
 
     it('should return undefined for non-existent dragon', () => {
@@ -131,25 +132,25 @@ describe('DragonService', () => {
 
   describe('calculateCurrentCost', () => {
     it('should calculate cost based on owned count', () => {
-      const hatchling = DragonService.getDragonById('hatchling')!;
-      
-      const cost0 = DragonService.calculateCurrentCost(hatchling, 0);
-      const cost1 = DragonService.calculateCurrentCost(hatchling, 1);
-      const cost2 = DragonService.calculateCurrentCost(hatchling, 2);
-      
-      expect(cost0).toBe(15); // Base cost
-      expect(cost1).toBe(15 * 1.15); // Base cost * multiplier^1
-      expect(cost2).toBe(15 * Math.pow(1.15, 2)); // Base cost * multiplier^2
+      const dragonEgg = DragonService.getDragonById('dragon_egg')!;
+
+      const cost0 = DragonService.calculateCurrentCost(dragonEgg, 0);
+      const cost1 = DragonService.calculateCurrentCost(dragonEgg, 1);
+      const cost2 = DragonService.calculateCurrentCost(dragonEgg, 2);
+
+      expect(cost0).toBe(5); // Base cost
+      expect(cost1).toBe(5 * 1.1); // Base cost * multiplier^1
+      expect(cost2).toBe(5 * Math.pow(1.1, 2)); // Base cost * multiplier^2
     });
   });
 
   describe('calculateTotalProduction', () => {
     it('should calculate total production for owned dragons', () => {
-      const hatchling = DragonService.getDragonById('hatchling')!;
-      
-      const production0 = DragonService.calculateTotalProduction(hatchling, 0);
-      const production3 = DragonService.calculateTotalProduction(hatchling, 3);
-      
+      const dragonEgg = DragonService.getDragonById('dragon_egg')!;
+
+      const production0 = DragonService.calculateTotalProduction(dragonEgg, 0);
+      const production3 = DragonService.calculateTotalProduction(dragonEgg, 3);
+
       expect(production0).toBe(0);
       expect(production3).toBe(0.1 * 3); // Base rate * count
     });
@@ -158,8 +159,8 @@ describe('DragonService', () => {
   describe('getProductionRate', () => {
     it('should calculate total production rates for all owned dragons', () => {
       const productionRates = DragonService.getProductionRate(mockGameState);
-      
-      expect(productionRates.meat).toBe(0.1 * 3); // 3 hatchlings * 0.1 rate
+
+      expect(productionRates.meat).toBe(0.1 * 1 + 0.1 * 3); // 1 dragon egg + 3 hatchlings * 0.1 rate each
       expect(productionRates.eggs).toBe(0.5 * 1); // 1 egg layer * 0.5 rate
     });
 

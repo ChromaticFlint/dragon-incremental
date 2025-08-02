@@ -17,6 +17,7 @@ describe('ResourceDisplay', () => {
       energy: new Decimal(100),
     },
     dragons: {
+      dragon_egg: 1,
       hatchling: 2,
     },
     settings: {
@@ -45,8 +46,8 @@ describe('ResourceDisplay', () => {
   it('should show rate when showRate is true and rate > 0', () => {
     render(<ResourceDisplay resource="meat" showRate />);
 
-    // Should show production rate from dragons (2 hatchlings * 0.1 = 0.2/sec)
-    expect(screen.getByText(/0\.20\/sec/)).toBeInTheDocument();
+    // Should show production rate from dragons (1 dragon egg + 2 hatchlings * 0.1 = 0.3/sec)
+    expect(screen.getByText(/0\.30\/sec/)).toBeInTheDocument();
   });
 
   it('should handle zero resources', () => {
@@ -76,6 +77,7 @@ describe('ResourcePanel', () => {
       cosmicEssence: new Decimal(0),
     },
     dragons: {
+      dragon_egg: 1,
       hatchling: 3,
       egg_layer: 1,
     },
