@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-dragon-50: #fef7ee;
+  --color-dragon-100: #fdedd3;
+  --color-dragon-200: #fad7a5;
+  --color-dragon-300: #f6ba6d;
+  --color-dragon-400: #f19533;
+  --color-dragon-500: #ed7611;
+  --color-dragon-600: #de5c07;
+  --color-dragon-700: #b84608;
+  --color-dragon-800: #93380e;
+  --color-dragon-900: #762f0f;
+  --color-dragon-950: #401505;
+
+  --color-lair-50: #f8fafc;
+  --color-lair-100: #f1f5f9;
+  --color-lair-200: #e2e8f0;
+  --color-lair-300: #cbd5e1;
+  --color-lair-400: #94a3b8;
+  --color-lair-500: #64748b;
+  --color-lair-600: #475569;
+  --color-lair-700: #334155;
+  --color-lair-800: #1e293b;
+  --color-lair-900: #0f172a;
+  --color-lair-950: #020617;
+
+  --font-family-dragon: 'Cinzel', serif;
+  --font-family-ui: 'Inter', sans-serif;
+}
+
+:root {
+  font-family: var(--font-family-ui), system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--color-lair-900);
+  color: var(--color-lair-100);
+  font-family: var(--font-family-ui);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-dragon);
+}
+
+.btn-primary {
+  background-color: var(--color-dragon-600);
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-dragon-700);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: var(--color-lair-700);
+  color: var(--color-lair-100);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-lair-600);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card {
+  background-color: var(--color-lair-800);
+  border: 1px solid var(--color-lair-700);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.resource-display {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-dragon-400);
+}
+
+.dragon-count {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-lair-200);
+}
