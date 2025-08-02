@@ -26,7 +26,7 @@ export function formatNumber(
   }
 
   if (decimal.lt(1000)) {
-    return decimal.toFixed(decimal.lt(10) ? precision : Math.max(0, precision - 1));
+    return decimal.toFixed(precision);
   }
 
   switch (format) {

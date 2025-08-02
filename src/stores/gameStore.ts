@@ -3,6 +3,19 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { Decimal } from 'decimal.js';
 import type { GameState, GameSettings, GameStatistics } from '../types/game';
 
+// Utility function to ensure all resources are Decimal objects
+const ensureDecimalResources = (resources: Record<string, unknown>): Record<string, Decimal> => {
+  const result: Record<string, Decimal> = {};
+  for (const [key, value] of Object.entries(resources)) {
+    if (value instanceof Decimal) {
+      result[key] = value;
+    } else {
+      result[key] = new Decimal(typeof value === 'number' || typeof value === 'string' ? value : 0);
+    }
+  }
+  return result;
+};
+
 interface GameStore extends GameState {
   // Actions
   addResource: (resource: string, amount: Decimal) => void;
@@ -70,30 +83,41 @@ export const useGameStore = create<GameStore>()(
     ...initialGameState,
 
     addResource: (resource: string, amount: Decimal) => {
-      set((state) => ({
-        resources: {
-          ...state.resources,
-          [resource]: state.resources[resource]?.add(amount) || amount,
-        },
-        statistics: {
-          ...state.statistics,
-          totalResourcesEarned: {
-            ...state.statistics.totalResourcesEarned,
-            [resource]: state.statistics.totalResourcesEarned[resource]?.add(amount) || amount,
+      set((state) => {
+        // Ensure current resource value is a Decimal object
+        const currentAmount = state.resources[resource];
+        const currentDecimal = currentAmount instanceof Decimal ? currentAmount : new Decimal(currentAmount || 0);
+
+        // Ensure statistics value is a Decimal object
+        const currentStatsAmount = state.statistics.totalResourcesEarned[resource];
+        const currentStatsDecimal = currentStatsAmount instanceof Decimal ? currentStatsAmount : new Decimal(currentStatsAmount || 0);
+
+        return {
+          resources: {
+            ...state.resources,
+            [resource]: currentDecimal.add(amount),
           },
-        },
-      }));
+          statistics: {
+            ...state.statistics,
+            totalResourcesEarned: {
+              ...state.statistics.totalResourcesEarned,
+              [resource]: currentStatsDecimal.add(amount),
+            },
+          },
+        };
+      });
     },
 
     spendResource: (resource: string, amount: Decimal) => {
       const state = get();
-      const currentAmount = state.resources[resource] || new Decimal(0);
-      
-      if (currentAmount.gte(amount)) {
+      const currentAmount = state.resources[resource];
+      const currentDecimal = currentAmount instanceof Decimal ? currentAmount : new Decimal(currentAmount || 0);
+
+      if (currentDecimal.gte(amount)) {
         set((state) => ({
           resources: {
             ...state.resources,
-            [resource]: currentAmount.sub(amount),
+            [resource]: currentDecimal.sub(amount),
           },
         }));
         return true;
@@ -104,8 +128,11 @@ export const useGameStore = create<GameStore>()(
     canAfford: (costs: Record<string, number>) => {
       const state = get();
       return Object.entries(costs).every(([resource, cost]) => {
-        const currentAmount = state.resources[resource] || new Decimal(0);
-        return currentAmount.gte(cost);
+        const currentAmount = state.resources[resource];
+        if (!currentAmount) return false;
+        // Ensure currentAmount is a Decimal object
+        const decimalAmount = currentAmount instanceof Decimal ? currentAmount : new Decimal(currentAmount);
+        return decimalAmount.gte(cost);
       });
     },
 
@@ -156,10 +183,21 @@ export const useGameStore = create<GameStore>()(
           return value;
         });
         
-        set({
+        // Ensure all resources are Decimal objects after loading
+        const loadedState = {
           ...initialGameState,
           ...parsed,
-        });
+        };
+
+        if (loadedState.resources) {
+          loadedState.resources = ensureDecimalResources(loadedState.resources);
+        }
+
+        if (loadedState.statistics?.totalResourcesEarned) {
+          loadedState.statistics.totalResourcesEarned = ensureDecimalResources(loadedState.statistics.totalResourcesEarned);
+        }
+
+        set(loadedState);
         return true;
       } catch (error) {
         console.error('Failed to load save data:', error);
@@ -168,7 +206,15 @@ export const useGameStore = create<GameStore>()(
     },
 
     resetGame: () => {
-      set(initialGameState);
+      const resetState = {
+        ...initialGameState,
+        resources: ensureDecimalResources(initialGameState.resources),
+        statistics: {
+          ...initialGameState.statistics,
+          totalResourcesEarned: ensureDecimalResources(initialGameState.statistics.totalResourcesEarned),
+        },
+      };
+      set(resetState);
       localStorage.removeItem('dragon-incremental-save');
     },
 
