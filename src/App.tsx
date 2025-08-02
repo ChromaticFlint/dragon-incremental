@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js';
 import { useGameStore } from './stores/gameStore';
 import { ResourcePanel } from './components/ui/ResourceDisplay';
 import { DragonPanel } from './components/dragons/DragonCard';
+import { DragonService } from './services/dragonService';
 
 function App() {
   const { tick, addResource } = useGameStore();
@@ -10,7 +11,11 @@ function App() {
   // Game loop
   useEffect(() => {
     const gameLoop = setInterval(() => {
-      tick();
+      const dragonConfigs = DragonService.getAllDragons().map(dragon => ({
+        id: dragon.id,
+        production: dragon.production,
+      }));
+      tick(dragonConfigs);
     }, 1000); // 1 second intervals for now
 
     return () => clearInterval(gameLoop);

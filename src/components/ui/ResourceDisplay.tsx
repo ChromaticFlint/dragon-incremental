@@ -2,6 +2,7 @@ import React from 'react';
 import { Decimal } from 'decimal.js';
 import { useGameStore } from '../../stores/gameStore';
 import { formatNumber } from '../../utils/formatNumber';
+import { DragonService } from '../../services/dragonService';
 
 interface ResourceDisplayProps {
   resource: string;
@@ -16,11 +17,13 @@ export const ResourceDisplay: React.FC<ResourceDisplayProps> = ({
   showRate = false,
   className = '',
 }) => {
-  const { resources, settings } = useGameStore();
+  const gameState = useGameStore();
+  const { resources, settings } = gameState;
   const amount = resources[resource] || new Decimal(0);
-  
-  // TODO: Calculate production rate when we implement dragon production
-  const rate = new Decimal(0);
+
+  // Calculate production rate from dragons
+  const productionRates = DragonService.getProductionRate(gameState);
+  const rate = productionRates[resource] || 0;
 
   const displayLabel = label || resource.charAt(0).toUpperCase() + resource.slice(1);
 
@@ -28,7 +31,7 @@ export const ResourceDisplay: React.FC<ResourceDisplayProps> = ({
     <div className={`flex flex-col ${className}`}>
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-lair-300">{displayLabel}</span>
-        {showRate && rate.gt(0) && (
+        {showRate && rate > 0 && (
           <span className="text-xs text-lair-400">
             +{formatNumber(rate, settings.numberFormat)}/sec
           </span>

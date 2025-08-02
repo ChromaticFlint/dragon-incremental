@@ -21,13 +21,14 @@ interface GameStore extends GameState {
   addResource: (resource: string, amount: Decimal) => void;
   spendResource: (resource: string, amount: Decimal) => boolean;
   canAfford: (costs: Record<string, number>) => boolean;
-  purchaseDragon: (dragonId: string) => boolean;
+  purchaseDragon: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }) => boolean;
+  calculateDragonProduction: (dragonConfigs: Array<{ id: string; production: { resource: string; baseRate: number } }>) => void;
   updateSettings: (settings: Partial<GameSettings>) => void;
   updateStatistics: (stats: Partial<GameStatistics>) => void;
   saveGame: () => void;
   loadGame: (saveData: string) => boolean;
   resetGame: () => void;
-  tick: () => void;
+  tick: (dragonConfigs?: Array<{ id: string; production: { resource: string; baseRate: number } }>) => void;
 }
 
 const initialGameState: GameState = {
@@ -136,10 +137,69 @@ export const useGameStore = create<GameStore>()(
       });
     },
 
-    purchaseDragon: (dragonId: string) => {
-      // This will be implemented when we add dragon configurations
-      console.log(`Purchasing dragon: ${dragonId}`);
-      return false;
+    purchaseDragon: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }) => {
+      const state = get();
+      const owned = state.dragons[dragonId] || 0;
+
+      // Calculate current cost
+      const currentCost = new Decimal(dragonConfig.baseCost).mul(
+        new Decimal(dragonConfig.costMultiplier).pow(owned)
+      );
+
+      // Check if we can afford it
+      if (!get().canAfford({ [dragonConfig.costResource]: currentCost.toNumber() })) {
+        return false;
+      }
+
+      // Spend the resources
+      if (!get().spendResource(dragonConfig.costResource, currentCost)) {
+        return false;
+      }
+
+      // Add the dragon
+      set((state) => ({
+        dragons: {
+          ...state.dragons,
+          [dragonId]: (state.dragons[dragonId] || 0) + 1,
+        },
+        statistics: {
+          ...state.statistics,
+          dragonsHatched: state.statistics.dragonsHatched + 1,
+          maxDragonsOwned: {
+            ...state.statistics.maxDragonsOwned,
+            [dragonId]: Math.max(state.statistics.maxDragonsOwned[dragonId] || 0, (state.dragons[dragonId] || 0) + 1),
+          },
+        },
+      }));
+
+      return true;
+    },
+
+    calculateDragonProduction: (dragonConfigs: Array<{ id: string; production: { resource: string; baseRate: number } }>) => {
+      const state = get();
+
+      // Calculate total production for each resource
+      const production: Record<string, Decimal> = {};
+
+      for (const config of dragonConfigs) {
+        const owned = state.dragons[config.id] || 0;
+        if (owned > 0) {
+          const resourceProduced = config.production.resource;
+          const totalProduction = new Decimal(config.production.baseRate).mul(owned);
+
+          if (!production[resourceProduced]) {
+            production[resourceProduced] = new Decimal(0);
+          }
+          production[resourceProduced] = production[resourceProduced].add(totalProduction);
+        }
+      }
+
+      // Apply production to resources
+      for (const [resource, amount] of Object.entries(production)) {
+        if (amount.gt(0)) {
+          get().addResource(resource, amount);
+        }
+      }
     },
 
     updateSettings: (newSettings: Partial<GameSettings>) => {
@@ -218,10 +278,14 @@ export const useGameStore = create<GameStore>()(
       localStorage.removeItem('dragon-incremental-save');
     },
 
-    tick: () => {
-      // Game loop logic will be implemented here
+    tick: (dragonConfigs?: Array<{ id: string; production: { resource: string; baseRate: number } }>) => {
       const state = get();
-      
+
+      // Apply dragon production if configs are provided
+      if (dragonConfigs) {
+        get().calculateDragonProduction(dragonConfigs);
+      }
+
       // Update total time
       set((state) => ({
         statistics: {

@@ -1,0 +1,95 @@
+{
+  "dragons": [
+    {
+      "id": "hatchling",
+      "name": "Dragon Hatchling",
+      "description": "A small but eager young dragon that produces meat by hunting small creatures.",
+      "baseCost": 15,
+      "costResource": "meat",
+      "costMultiplier": 1.15,
+      "production": {
+        "resource": "meat",
+        "baseRate": 0.1
+      },
+      "category": "basic",
+      "rarity": 1,
+      "unlockCondition": null
+    },
+    {
+      "id": "egg_layer",
+      "name": "Egg Layer",
+      "description": "A specialized dragon that focuses on egg production for the next generation.",
+      "baseCost": 100,
+      "costResource": "meat",
+      "costMultiplier": 1.15,
+      "production": {
+        "resource": "eggs",
+        "baseRate": 0.5
+      },
+      "category": "basic",
+      "rarity": 1,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "hatchling",
+        "value": 5
+      }
+    },
+    {
+      "id": "energy_drake",
+      "name": "Energy Drake",
+      "description": "A mystical dragon that channels magical energy from the surrounding environment.",
+      "baseCost": 500,
+      "costResource": "meat",
+      "costMultiplier": 1.2,
+      "production": {
+        "resource": "energy",
+        "baseRate": 1.0
+      },
+      "category": "advanced",
+      "rarity": 2,
+      "unlockCondition": {
+        "type": "resource",
+        "target": "energy",
+        "value": 50
+      }
+    },
+    {
+      "id": "gold_wyrm",
+      "name": "Gold Wyrm",
+      "description": "An ancient dragon with a keen eye for treasure, capable of generating gold.",
+      "baseCost": 10,
+      "costResource": "eggs",
+      "costMultiplier": 1.25,
+      "production": {
+        "resource": "gold",
+        "baseRate": 0.2
+      },
+      "category": "advanced",
+      "rarity": 3,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "egg_layer",
+        "value": 3
+      }
+    },
+    {
+      "id": "meat_titan",
+      "name": "Meat Titan",
+      "description": "A massive dragon that can hunt large prey, producing substantial amounts of meat.",
+      "baseCost": 1000,
+      "costResource": "energy",
+      "costMultiplier": 1.3,
+      "production": {
+        "resource": "meat",
+        "baseRate": 5.0
+      },
+      "category": "legendary",
+      "rarity": 4,
+      "unlockCondition": {
+        "type": "resource",
+        "target": "gold",
+        "value": 100
+      }
+    }
+  ]
+}

@@ -16,6 +16,9 @@ describe('ResourceDisplay', () => {
       eggs: new Decimal(0),
       energy: new Decimal(100),
     },
+    dragons: {
+      hatchling: 2,
+    },
     settings: {
       numberFormat: 'suffix',
     },
@@ -40,11 +43,10 @@ describe('ResourceDisplay', () => {
   });
 
   it('should show rate when showRate is true and rate > 0', () => {
-    // This test would need the rate calculation to be implemented
     render(<ResourceDisplay resource="meat" showRate />);
-    
-    // For now, rate is always 0, so rate display shouldn't appear
-    expect(screen.queryByText(/\/sec/)).not.toBeInTheDocument();
+
+    // Should show production rate from dragons (2 hatchlings * 0.1 = 0.2/sec)
+    expect(screen.getByText(/0\.20\/sec/)).toBeInTheDocument();
   });
 
   it('should handle zero resources', () => {
@@ -72,6 +74,10 @@ describe('ResourcePanel', () => {
       dragonSouls: new Decimal(0),
       ancientPower: new Decimal(0),
       cosmicEssence: new Decimal(0),
+    },
+    dragons: {
+      hatchling: 3,
+      egg_layer: 1,
     },
     settings: {
       numberFormat: 'suffix',

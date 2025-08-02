@@ -1,7 +1,7 @@
 import React from 'react';
-import { Decimal } from 'decimal.js';
 import { useGameStore } from '../../stores/gameStore';
 import { formatNumber } from '../../utils/formatNumber';
+import { DragonService } from '../../services/dragonService';
 import type { DragonConfig } from '../../types/game';
 
 interface DragonCardProps {
@@ -10,20 +10,25 @@ interface DragonCardProps {
 }
 
 export const DragonCard: React.FC<DragonCardProps> = ({ dragon, className = '' }) => {
-  const { dragons, canAfford, settings } = useGameStore();
+  const { dragons, canAfford, settings, purchaseDragon } = useGameStore();
   const owned = dragons[dragon.id] || 0;
-  
+
   // Calculate current cost based on owned count
-  const currentCost = new Decimal(dragon.baseCost).mul(
-    new Decimal(dragon.costMultiplier).pow(owned)
-  );
-  
-  const canPurchase = canAfford({ [dragon.costResource]: currentCost.toNumber() });
-  
+  const currentCost = DragonService.calculateCurrentCost(dragon, owned);
+
+  const canPurchase = canAfford({ [dragon.costResource]: currentCost });
+
   const handlePurchase = () => {
     if (canPurchase) {
-      // TODO: Implement actual purchase logic
-      console.log(`Purchasing ${dragon.name} for ${currentCost} ${dragon.costResource}`);
+      const success = purchaseDragon(dragon.id, {
+        baseCost: dragon.baseCost,
+        costResource: dragon.costResource,
+        costMultiplier: dragon.costMultiplier,
+      });
+
+      if (!success) {
+        console.error(`Failed to purchase ${dragon.name}`);
+      }
     }
   };
 
@@ -50,7 +55,7 @@ export const DragonCard: React.FC<DragonCardProps> = ({ dragon, className = '' }
         </div>
         {owned > 0 && (
           <div className="text-sm text-dragon-400">
-            Total: {formatNumber(new Decimal(dragon.production.baseRate).mul(owned), settings.numberFormat)} {dragon.production.resource}/sec
+            Total: {formatNumber(DragonService.calculateTotalProduction(dragon, owned), settings.numberFormat)} {dragon.production.resource}/sec
           </div>
         )}
       </div>
@@ -92,37 +97,8 @@ interface DragonPanelProps {
 }
 
 export const DragonPanel: React.FC<DragonPanelProps> = ({ className = '' }) => {
-  // TODO: Load dragons from configuration
-  const sampleDragons: DragonConfig[] = [
-    {
-      id: 'hatchling',
-      name: 'Dragon Hatchling',
-      description: 'A small but eager young dragon that produces meat.',
-      baseCost: 15,
-      costResource: 'meat',
-      costMultiplier: 1.15,
-      production: {
-        resource: 'meat',
-        baseRate: 0.1,
-      },
-      category: 'basic',
-      rarity: 1,
-    },
-    {
-      id: 'egg_layer',
-      name: 'Egg Layer',
-      description: 'A specialized dragon that focuses on egg production.',
-      baseCost: 100,
-      costResource: 'meat',
-      costMultiplier: 1.15,
-      production: {
-        resource: 'eggs',
-        baseRate: 0.5,
-      },
-      category: 'basic',
-      rarity: 1,
-    },
-  ];
+  const gameState = useGameStore();
+  const availableDragons = DragonService.getAvailableDragons(gameState);
 
   return (
     <div className={`${className}`}>
@@ -130,7 +106,7 @@ export const DragonPanel: React.FC<DragonPanelProps> = ({ className = '' }) => {
         Dragons
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sampleDragons.map((dragon) => (
+        {availableDragons.map((dragon) => (
           <DragonCard key={dragon.id} dragon={dragon} />
         ))}
       </div>

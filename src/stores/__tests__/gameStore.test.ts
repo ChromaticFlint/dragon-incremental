@@ -296,16 +296,130 @@ describe('GameStore', () => {
     });
   });
 
+  describe('Dragon Purchasing', () => {
+    const mockDragonConfig = {
+      baseCost: 15,
+      costResource: 'meat',
+      costMultiplier: 1.15,
+    };
+
+    it('should purchase dragon when resources are sufficient', () => {
+      const { purchaseDragon, addResource } = useGameStore.getState();
+
+      // Add enough resources to afford the dragon
+      addResource('meat', new Decimal(10)); // Now we have 20 meat total
+
+      const success = purchaseDragon('hatchling', mockDragonConfig);
+
+      expect(success).toBe(true);
+
+      const state = useGameStore.getState();
+      expect(state.dragons.hatchling).toBe(1);
+      expect(state.resources.meat).toEqual(new Decimal(5)); // 20 - 15 = 5
+      expect(state.statistics.dragonsHatched).toBe(1);
+    });
+
+    it('should not purchase dragon when resources are insufficient', () => {
+      const { purchaseDragon, spendResource } = useGameStore.getState();
+
+      // Spend most of the meat
+      spendResource('meat', new Decimal(8));
+
+      const success = purchaseDragon('hatchling', mockDragonConfig);
+
+      expect(success).toBe(false);
+
+      const state = useGameStore.getState();
+      expect(state.dragons.hatchling).toBeUndefined();
+      expect(state.resources.meat).toEqual(new Decimal(2)); // Should remain unchanged
+    });
+
+    it('should calculate increasing costs for multiple purchases', () => {
+      const { purchaseDragon, addResource } = useGameStore.getState();
+
+      // Add enough resources for multiple purchases
+      addResource('meat', new Decimal(1000));
+
+      // First purchase should cost 15
+      const success1 = purchaseDragon('hatchling', mockDragonConfig);
+      expect(success1).toBe(true);
+
+      // Second purchase should cost 15 * 1.15 = 17.25
+      const success2 = purchaseDragon('hatchling', mockDragonConfig);
+      expect(success2).toBe(true);
+
+      const state = useGameStore.getState();
+      expect(state.dragons.hatchling).toBe(2);
+      expect(state.statistics.dragonsHatched).toBe(2);
+    });
+
+    it('should update max dragons owned statistic', () => {
+      const { purchaseDragon, addResource } = useGameStore.getState();
+
+      addResource('meat', new Decimal(100));
+
+      purchaseDragon('hatchling', mockDragonConfig);
+      purchaseDragon('hatchling', mockDragonConfig);
+
+      const state = useGameStore.getState();
+      expect(state.statistics.maxDragonsOwned.hatchling).toBe(2);
+    });
+  });
+
+  describe('Dragon Production', () => {
+    const mockDragonConfigs = [
+      {
+        id: 'hatchling',
+        production: { resource: 'meat', baseRate: 0.1 },
+      },
+      {
+        id: 'egg_layer',
+        production: { resource: 'eggs', baseRate: 0.5 },
+      },
+    ];
+
+    it('should calculate and apply dragon production', () => {
+      const { calculateDragonProduction } = useGameStore.getState();
+
+      // Add some dragons manually
+      useGameStore.setState((state) => ({
+        dragons: { ...state.dragons, hatchling: 3, egg_layer: 2 },
+      }));
+
+      const initialMeat = useGameStore.getState().resources.meat;
+      const initialEggs = useGameStore.getState().resources.eggs;
+
+      calculateDragonProduction(mockDragonConfigs);
+
+      const state = useGameStore.getState();
+      expect(state.resources.meat).toEqual(initialMeat.add(0.3)); // 3 * 0.1
+      expect(state.resources.eggs).toEqual(initialEggs.add(1.0)); // 2 * 0.5
+    });
+
+    it('should not produce resources when no dragons are owned', () => {
+      const { calculateDragonProduction } = useGameStore.getState();
+
+      const initialMeat = useGameStore.getState().resources.meat;
+      const initialEggs = useGameStore.getState().resources.eggs;
+
+      calculateDragonProduction(mockDragonConfigs);
+
+      const state = useGameStore.getState();
+      expect(state.resources.meat).toEqual(initialMeat);
+      expect(state.resources.eggs).toEqual(initialEggs);
+    });
+  });
+
   describe('Game Reset', () => {
     it('should reset game to initial state', () => {
       const { resetGame, addResource, updateSettings } = useGameStore.getState();
-      
+
       // Modify state
       addResource('meat', new Decimal(100));
       updateSettings({ autoSave: false });
-      
+
       resetGame();
-      
+
       const state = useGameStore.getState();
       expect(state.resources.meat).toEqual(new Decimal(10));
       expect(state.settings.autoSave).toBe(true);

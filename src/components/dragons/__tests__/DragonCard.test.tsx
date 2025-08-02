@@ -30,6 +30,7 @@ describe('DragonCard', () => {
       hatchling: 2,
     },
     canAfford: vi.fn(),
+    purchaseDragon: vi.fn(),
     settings: {
       numberFormat: 'suffix',
     },
@@ -38,6 +39,7 @@ describe('DragonCard', () => {
   beforeEach(() => {
     vi.mocked(useGameStore).mockReturnValue(mockGameStore);
     mockGameStore.canAfford.mockClear();
+    mockGameStore.purchaseDragon.mockClear();
   });
 
   it('should display dragon information', () => {
@@ -118,18 +120,18 @@ describe('DragonCard', () => {
 
   it('should handle click on buy button', () => {
     mockGameStore.canAfford.mockReturnValue(true);
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    
+    mockGameStore.purchaseDragon.mockReturnValue(true);
+
     render(<DragonCard dragon={mockDragon} />);
-    
+
     const buyButton = screen.getByText('Buy');
     fireEvent.click(buyButton);
-    
-    expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Purchasing Dragon Hatchling')
-    );
-    
-    consoleSpy.mockRestore();
+
+    expect(mockGameStore.purchaseDragon).toHaveBeenCalledWith('hatchling', {
+      baseCost: 15,
+      costResource: 'meat',
+      costMultiplier: 1.15,
+    });
   });
 
   it('should not show category badge for basic dragons', () => {
