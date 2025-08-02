@@ -298,7 +298,7 @@ describe('GameStore', () => {
 
   describe('Dragon Purchasing', () => {
     const mockDragonConfig = {
-      baseCost: 15,
+      baseCost: 12,
       costResource: 'meat',
       costMultiplier: 1.15,
     };
@@ -307,7 +307,7 @@ describe('GameStore', () => {
       const { purchaseDragon, addResource } = useGameStore.getState();
 
       // Add enough resources to afford the dragon
-      addResource('meat', new Decimal(10)); // Now we have 20 meat total
+      addResource('meat', new Decimal(5)); // Now we have 15 meat total
 
       const success = purchaseDragon('hatchling', mockDragonConfig);
 
@@ -315,7 +315,7 @@ describe('GameStore', () => {
 
       const state = useGameStore.getState();
       expect(state.dragons.hatchling).toBe(1);
-      expect(state.resources.meat).toEqual(new Decimal(5)); // 20 - 15 = 5
+      expect(state.resources.meat).toEqual(new Decimal(3)); // 15 - 12 = 3
       expect(state.statistics.dragonsHatched).toBe(1);
     });
 
@@ -340,11 +340,11 @@ describe('GameStore', () => {
       // Add enough resources for multiple purchases
       addResource('meat', new Decimal(1000));
 
-      // First purchase should cost 15
+      // First purchase should cost 12
       const success1 = purchaseDragon('hatchling', mockDragonConfig);
       expect(success1).toBe(true);
 
-      // Second purchase should cost 15 * 1.15 = 17.25
+      // Second purchase should cost 12 * 1.15 = 13.8
       const success2 = purchaseDragon('hatchling', mockDragonConfig);
       expect(success2).toBe(true);
 
@@ -370,11 +370,11 @@ describe('GameStore', () => {
     const mockDragonConfigs = [
       {
         id: 'hatchling',
-        production: { resource: 'meat', baseRate: 0.1 },
+        production: { resource: 'meat', baseRate: 0.2 },
       },
       {
         id: 'egg_layer',
-        production: { resource: 'eggs', baseRate: 0.5 },
+        production: { resource: 'eggs', baseRate: 1.0 },
       },
     ];
 
@@ -392,8 +392,8 @@ describe('GameStore', () => {
       calculateDragonProduction(mockDragonConfigs);
 
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(initialMeat.add(0.3)); // 3 * 0.1
-      expect(state.resources.eggs).toEqual(initialEggs.add(1.0)); // 2 * 0.5
+      expect(state.resources.meat).toEqual(initialMeat.add(0.6)); // 3 * 0.2
+      expect(state.resources.eggs).toEqual(initialEggs.add(2.0)); // 2 * 1.0
     });
 
     it('should not produce resources when no dragons are owned', () => {
@@ -423,7 +423,7 @@ describe('GameStore', () => {
       const dragonConfigs = [
         {
           id: 'dragon_egg',
-          production: { resource: 'meat', baseRate: 0.1 },
+          production: { resource: 'meat', baseRate: 0.2 },
         },
       ];
 
@@ -432,7 +432,7 @@ describe('GameStore', () => {
       calculateDragonProduction(dragonConfigs);
 
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(initialMeat.add(0.1)); // 1 egg * 0.1 rate
+      expect(state.resources.meat).toEqual(initialMeat.add(0.2)); // 1 egg * 0.2 rate
     });
   });
 

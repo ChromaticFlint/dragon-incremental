@@ -152,7 +152,7 @@ describe('DragonService', () => {
       const production3 = DragonService.calculateTotalProduction(dragonEgg, 3);
 
       expect(production0).toBe(0);
-      expect(production3).toBe(0.1 * 3); // Base rate * count
+      expect(production3).toBe(0.2 * 3); // Base rate * count
     });
   });
 
@@ -160,8 +160,8 @@ describe('DragonService', () => {
     it('should calculate total production rates for all owned dragons', () => {
       const productionRates = DragonService.getProductionRate(mockGameState);
 
-      expect(productionRates.meat).toBe(0.1 * 1 + 0.1 * 3); // 1 dragon egg + 3 hatchlings * 0.1 rate each
-      expect(productionRates.eggs).toBe(0.5 * 1); // 1 egg layer * 0.5 rate
+      expect(productionRates.meat).toBe(0.2 * 1 + 0.2 * 3); // 1 dragon egg + 3 hatchlings * 0.2 rate each
+      expect(productionRates.eggs).toBe(1.0 * 1); // 1 egg layer * 1.0 rate
     });
 
     it('should return empty object when no dragons are owned', () => {

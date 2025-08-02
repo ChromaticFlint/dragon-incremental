@@ -16,7 +16,7 @@ function App() {
         production: dragon.production,
       }));
       tick(dragonConfigs);
-    }, 1000); // 1 second intervals for now
+    }, 500); // 500ms intervals for faster early game
 
     return () => clearInterval(gameLoop);
   }, [tick]);
