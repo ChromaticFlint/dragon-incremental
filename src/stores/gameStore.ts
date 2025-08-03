@@ -22,6 +22,8 @@ interface GameStore extends GameState {
   spendResource: (resource: string, amount: Decimal) => boolean;
   canAfford: (costs: Record<string, number>) => boolean;
   purchaseDragon: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }) => boolean;
+  purchaseDragonBulk: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }, amount: number) => number;
+  calculateMaxAffordable: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }) => number;
   hatchEgg: (targetDragonId: string, amount?: number) => boolean;
   calculateDragonProduction: (dragonConfigs: Array<{ id: string; production: { resource: string; baseRate: number } }>) => void;
   updateSettings: (settings: Partial<GameSettings>) => void;
@@ -174,6 +176,74 @@ export const useGameStore = create<GameStore>()(
       }));
 
       return true;
+    },
+
+    calculateMaxAffordable: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }) => {
+      const state = get();
+      const owned = state.dragons[dragonId] || 0;
+      const availableResource = state.resources[dragonConfig.costResource] || new Decimal(0);
+
+      let maxAffordable = 0;
+      let totalCost = new Decimal(0);
+      let currentCost = new Decimal(dragonConfig.baseCost).mul(
+        new Decimal(dragonConfig.costMultiplier).pow(owned)
+      );
+
+      // Calculate how many we can afford with geometric series
+      while (totalCost.add(currentCost).lte(availableResource)) {
+        totalCost = totalCost.add(currentCost);
+        maxAffordable++;
+        currentCost = currentCost.mul(dragonConfig.costMultiplier);
+      }
+
+      return maxAffordable;
+    },
+
+    purchaseDragonBulk: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }, amount: number) => {
+      if (amount <= 0) return 0;
+
+      const state = get();
+      const owned = state.dragons[dragonId] || 0;
+
+      // Calculate total cost for the amount requested
+      let totalCost = new Decimal(0);
+      for (let i = 0; i < amount; i++) {
+        const cost = new Decimal(dragonConfig.baseCost).mul(
+          new Decimal(dragonConfig.costMultiplier).pow(owned + i)
+        );
+        totalCost = totalCost.add(cost);
+      }
+
+      // Check if we can afford it
+      if (!get().canAfford({ [dragonConfig.costResource]: totalCost.toNumber() })) {
+        return 0;
+      }
+
+      // Spend the resources
+      if (!get().spendResource(dragonConfig.costResource, totalCost)) {
+        return 0;
+      }
+
+      // Add the dragons
+      set((state) => ({
+        dragons: {
+          ...state.dragons,
+          [dragonId]: (state.dragons[dragonId] || 0) + amount,
+        },
+        statistics: {
+          ...state.statistics,
+          dragonsHatched: state.statistics.dragonsHatched + amount,
+          maxDragonsOwned: {
+            ...state.statistics.maxDragonsOwned,
+            [dragonId]: Math.max(
+              state.statistics.maxDragonsOwned[dragonId] || 0,
+              (state.dragons[dragonId] || 0) + amount
+            ),
+          },
+        },
+      }));
+
+      return amount;
     },
 
     hatchEgg: (targetDragonId: string, amount: number = 1) => {

@@ -31,6 +31,8 @@ describe('DragonCard', () => {
     },
     canAfford: vi.fn(),
     purchaseDragon: vi.fn(),
+    purchaseDragonBulk: vi.fn(),
+    calculateMaxAffordable: vi.fn(),
     settings: {
       numberFormat: 'suffix',
     },
@@ -40,6 +42,8 @@ describe('DragonCard', () => {
     vi.mocked(useGameStore).mockReturnValue(mockGameStore);
     mockGameStore.canAfford.mockClear();
     mockGameStore.purchaseDragon.mockClear();
+    mockGameStore.purchaseDragonBulk.mockClear();
+    mockGameStore.calculateMaxAffordable.mockClear();
   });
 
   it('should display dragon information', () => {
@@ -162,10 +166,62 @@ describe('DragonCard', () => {
 
   it('should call canAfford with correct cost calculation', () => {
     render(<DragonCard dragon={mockDragon} />);
-    
+
     // Should call canAfford with the calculated cost
     expect(mockGameStore.canAfford).toHaveBeenCalledWith({
       eggs: expect.any(Number),
     });
+  });
+
+  it('should show bulk purchase buttons when max affordable > 1', () => {
+    mockGameStore.canAfford.mockReturnValue(true);
+    mockGameStore.calculateMaxAffordable.mockReturnValue(5);
+
+    render(<DragonCard dragon={mockDragon} />);
+
+    expect(screen.getByText('Buy Half (2)')).toBeInTheDocument();
+    expect(screen.getByText('Buy Max (5)')).toBeInTheDocument();
+  });
+
+  it('should not show bulk purchase buttons when max affordable <= 1', () => {
+    mockGameStore.canAfford.mockReturnValue(true);
+    mockGameStore.calculateMaxAffordable.mockReturnValue(1);
+
+    render(<DragonCard dragon={mockDragon} />);
+
+    expect(screen.queryByText(/Buy Half/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Buy Max/)).not.toBeInTheDocument();
+  });
+
+  it('should handle buy half button click', () => {
+    mockGameStore.canAfford.mockReturnValue(true);
+    mockGameStore.calculateMaxAffordable.mockReturnValue(6);
+
+    render(<DragonCard dragon={mockDragon} />);
+
+    const buyHalfButton = screen.getByText('Buy Half (3)');
+    fireEvent.click(buyHalfButton);
+
+    expect(mockGameStore.purchaseDragonBulk).toHaveBeenCalledWith('hatchling', {
+      baseCost: 1,
+      costResource: 'eggs',
+      costMultiplier: 1.0,
+    }, 3);
+  });
+
+  it('should handle buy max button click', () => {
+    mockGameStore.canAfford.mockReturnValue(true);
+    mockGameStore.calculateMaxAffordable.mockReturnValue(8);
+
+    render(<DragonCard dragon={mockDragon} />);
+
+    const buyMaxButton = screen.getByText('Buy Max (8)');
+    fireEvent.click(buyMaxButton);
+
+    expect(mockGameStore.purchaseDragonBulk).toHaveBeenCalledWith('hatchling', {
+      baseCost: 1,
+      costResource: 'eggs',
+      costMultiplier: 1.0,
+    }, 8);
   });
 });

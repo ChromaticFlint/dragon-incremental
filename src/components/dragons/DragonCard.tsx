@@ -10,13 +10,20 @@ interface DragonCardProps {
 }
 
 export const DragonCard: React.FC<DragonCardProps> = ({ dragon, className = '' }) => {
-  const { dragons, canAfford, settings, purchaseDragon } = useGameStore();
+  const { dragons, canAfford, settings, purchaseDragon, purchaseDragonBulk, calculateMaxAffordable } = useGameStore();
   const owned = dragons[dragon.id] || 0;
 
   // Calculate current cost based on owned count
   const currentCost = DragonService.calculateCurrentCost(dragon, owned);
 
   const canPurchase = canAfford({ [dragon.costResource]: currentCost });
+
+  // Calculate max affordable for bulk purchases
+  const maxAffordable = calculateMaxAffordable(dragon.id, {
+    baseCost: dragon.baseCost,
+    costResource: dragon.costResource,
+    costMultiplier: dragon.costMultiplier,
+  });
 
   const handlePurchase = () => {
     if (canPurchase) {
@@ -29,6 +36,27 @@ export const DragonCard: React.FC<DragonCardProps> = ({ dragon, className = '' }
       if (!success) {
         console.error(`Failed to purchase ${dragon.name}`);
       }
+    }
+  };
+
+  const handlePurchaseHalf = () => {
+    const halfAmount = Math.max(1, Math.floor(maxAffordable / 2));
+    if (halfAmount > 0) {
+      purchaseDragonBulk(dragon.id, {
+        baseCost: dragon.baseCost,
+        costResource: dragon.costResource,
+        costMultiplier: dragon.costMultiplier,
+      }, halfAmount);
+    }
+  };
+
+  const handlePurchaseMax = () => {
+    if (maxAffordable > 0) {
+      purchaseDragonBulk(dragon.id, {
+        baseCost: dragon.baseCost,
+        costResource: dragon.costResource,
+        costMultiplier: dragon.costMultiplier,
+      }, maxAffordable);
     }
   };
 
@@ -60,21 +88,40 @@ export const DragonCard: React.FC<DragonCardProps> = ({ dragon, className = '' }
         )}
       </div>
       
-      <div className="flex items-center justify-between">
-        <div className="text-sm">
-          <span className="text-lair-300">Cost: </span>
-          <span className={canPurchase ? 'text-green-400' : 'text-red-400'}>
-            {formatNumber(currentCost, settings.numberFormat)} {dragon.costResource}
-          </span>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="text-sm">
+            <span className="text-lair-300">Cost: </span>
+            <span className={canPurchase ? 'text-green-400' : 'text-red-400'}>
+              {formatNumber(currentCost, settings.numberFormat)} {dragon.costResource}
+            </span>
+          </div>
+
+          <button
+            onClick={handlePurchase}
+            disabled={!canPurchase}
+            className="btn-primary text-sm px-3 py-1"
+          >
+            Buy
+          </button>
         </div>
-        
-        <button
-          onClick={handlePurchase}
-          disabled={!canPurchase}
-          className="btn-primary text-sm px-3 py-1"
-        >
-          Buy
-        </button>
+
+        {maxAffordable > 1 && (
+          <div className="flex gap-2">
+            <button
+              onClick={handlePurchaseHalf}
+              className="flex-1 px-2 py-1 rounded text-xs font-medium bg-dragon-700 hover:bg-dragon-800 text-white transition-colors duration-200"
+            >
+              Buy Half ({Math.max(1, Math.floor(maxAffordable / 2))})
+            </button>
+            <button
+              onClick={handlePurchaseMax}
+              className="flex-1 px-2 py-1 rounded text-xs font-medium bg-dragon-800 hover:bg-dragon-900 text-white transition-colors duration-200"
+            >
+              Buy Max ({maxAffordable})
+            </button>
+          </div>
+        )}
       </div>
       
       {dragon.category !== 'basic' && (

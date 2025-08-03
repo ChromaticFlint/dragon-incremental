@@ -310,6 +310,8 @@ describe('GameStore', () => {
       costMultiplier: 1.2,
     };
 
+
+
     it('should purchase dragon when resources are sufficient', () => {
       const { purchaseDragon, addResource } = useGameStore.getState();
 
@@ -370,6 +372,89 @@ describe('GameStore', () => {
 
       const state = useGameStore.getState();
       expect(state.statistics.maxDragonsOwned.egg_layer).toBe(2);
+    });
+  });
+
+  describe('Bulk Dragon Purchasing', () => {
+    const mockHatchlingConfig = {
+      baseCost: 1,
+      costResource: 'eggs',
+      costMultiplier: 1.0,
+    };
+
+    it('should calculate max affordable correctly', () => {
+      const { calculateMaxAffordable } = useGameStore.getState();
+
+      // With 3 eggs and hatchlings costing 1 egg each (no multiplier), should afford 3
+      const maxAffordable = calculateMaxAffordable('hatchling', mockHatchlingConfig);
+
+      expect(maxAffordable).toBe(3);
+    });
+
+    it('should calculate max affordable with cost multiplier', () => {
+      const { calculateMaxAffordable, addResource } = useGameStore.getState();
+
+      // Add more resources for testing with multiplier
+      addResource('meat', new Decimal(100));
+
+      const eggLayerConfig = {
+        baseCost: 20,
+        costResource: 'meat',
+        costMultiplier: 1.2,
+      };
+
+      const maxAffordable = calculateMaxAffordable('egg_layer', eggLayerConfig);
+
+      // With 100 meat: first costs 20, second costs 24, third costs 28.8, fourth costs 34.56
+      // Total for 4: 20 + 24 + 28.8 + 34.56 = 107.36 > 100, so should afford 3
+      expect(maxAffordable).toBe(3);
+    });
+
+    it('should purchase multiple dragons with bulk purchase', () => {
+      const { purchaseDragonBulk } = useGameStore.getState();
+
+      const purchased = purchaseDragonBulk('hatchling', mockHatchlingConfig, 2);
+
+      expect(purchased).toBe(2);
+
+      const state = useGameStore.getState();
+      expect(state.dragons.hatchling).toBe(2);
+      expect(state.resources.eggs).toEqual(new Decimal(1)); // 3 - 2 = 1
+      expect(state.statistics.dragonsHatched).toBe(2);
+    });
+
+    it('should not purchase more than affordable in bulk', () => {
+      const { purchaseDragonBulk } = useGameStore.getState();
+
+      // Try to buy 5 hatchlings when we only have 3 eggs
+      const purchased = purchaseDragonBulk('hatchling', mockHatchlingConfig, 5);
+
+      expect(purchased).toBe(0);
+
+      const state = useGameStore.getState();
+      expect(state.dragons.hatchling).toBeUndefined();
+      expect(state.resources.eggs).toEqual(new Decimal(3)); // Should remain unchanged
+    });
+
+    it('should handle bulk purchase with cost scaling', () => {
+      const { purchaseDragonBulk, addResource } = useGameStore.getState();
+
+      addResource('meat', new Decimal(100));
+
+      const eggLayerConfig = {
+        baseCost: 20,
+        costResource: 'meat',
+        costMultiplier: 1.2,
+      };
+
+      const purchased = purchaseDragonBulk('egg_layer', eggLayerConfig, 3);
+
+      expect(purchased).toBe(3);
+
+      const state = useGameStore.getState();
+      expect(state.dragons.egg_layer).toBe(3);
+      // Total cost: 20 + 24 + 28.8 = 72.8
+      expect(state.resources.meat.toNumber()).toBeCloseTo(27.2, 1); // 100 - 72.8
     });
   });
 
