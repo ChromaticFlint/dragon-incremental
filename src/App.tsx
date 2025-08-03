@@ -6,7 +6,7 @@ import { DragonPanel } from './components/dragons/DragonCard';
 import { DragonService } from './services/dragonService';
 
 function App() {
-  const { tick, addResource, resetGame } = useGameStore();
+  const { tick, addResource, resetGame, hatchEgg } = useGameStore();
 
   // Game loop
   useEffect(() => {
@@ -37,6 +37,10 @@ function App() {
     }
   };
 
+  const handleHatchEgg = () => {
+    hatchEgg('hatchling', 1);
+  };
+
   return (
     <div className="min-h-screen bg-lair-900 text-lair-100">
       <div className="container mx-auto px-4 py-8">
@@ -62,7 +66,10 @@ function App() {
                 Admin Controls
               </h3>
               <div className="space-y-2">
-                <button onClick={handleGenerateMeat} className="btn-primary w-full">
+                <button onClick={handleHatchEgg} className="btn-primary w-full">
+                  Hatch Egg → Hatchling
+                </button>
+                <button onClick={handleGenerateMeat} className="btn-secondary w-full">
                   Generate Meat (+1)
                 </button>
                 <button onClick={handleGenerateEnergy} className="btn-secondary w-full">
@@ -76,11 +83,12 @@ function App() {
                 </button>
               </div>
               <div className="mt-3 text-xs text-lair-400">
-                <p>Use these controls to test game progression:</p>
+                <p>New Resource Chain:</p>
                 <ul className="list-disc list-inside mt-1 space-y-1">
-                  <li>Generate resources to buy first dragons</li>
-                  <li>Reset to test early game balance</li>
-                  <li>Watch unlock progression</li>
+                  <li>Hatch Eggs (3 free) → Hatchlings → Meat</li>
+                  <li>Buy Egg Layers with Meat → More Eggs</li>
+                  <li>Strategic choice: Hatch vs Save eggs</li>
+                  <li>Reset to test progression balance</li>
                 </ul>
               </div>
             </div>

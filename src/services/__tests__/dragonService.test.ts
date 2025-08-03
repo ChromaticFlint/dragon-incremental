@@ -18,7 +18,6 @@ describe('DragonService', () => {
         cosmicEssence: new Decimal(0),
       },
       dragons: {
-        dragon_egg: 1,
         hatchling: 3,
         egg_layer: 1,
       },
@@ -83,19 +82,19 @@ describe('DragonService', () => {
   describe('isDragonUnlocked', () => {
     it('should return true for dragons with no unlock condition', () => {
       const hatchling = DragonService.getDragonById('hatchling')!;
-      
+
       const isUnlocked = DragonService.isDragonUnlocked(hatchling, mockGameState);
-      
+
       expect(isUnlocked).toBe(true);
     });
 
     it('should check resource unlock conditions', () => {
       const energyDrake = DragonService.getDragonById('energy_drake')!;
-      
+
       // Should be unlocked with 50 energy
       const isUnlocked = DragonService.isDragonUnlocked(energyDrake, mockGameState);
       expect(isUnlocked).toBe(true);
-      
+
       // Should not be unlocked with insufficient energy
       mockGameState.resources.energy = new Decimal(30);
       const isNotUnlocked = DragonService.isDragonUnlocked(energyDrake, mockGameState);
@@ -104,12 +103,12 @@ describe('DragonService', () => {
 
     it('should check dragon count unlock conditions', () => {
       const eggLayer = DragonService.getDragonById('egg_layer')!;
-      
-      // Should be unlocked with 3 hatchlings (requirement is 5)
-      mockGameState.dragons.hatchling = 5;
+
+      // Should be unlocked with 3 hatchlings (requirement is 3)
+      mockGameState.dragons.hatchling = 3;
       const isUnlocked = DragonService.isDragonUnlocked(eggLayer, mockGameState);
       expect(isUnlocked).toBe(true);
-      
+
       // Should not be unlocked with insufficient hatchlings
       mockGameState.dragons.hatchling = 2;
       const isNotUnlocked = DragonService.isDragonUnlocked(eggLayer, mockGameState);
@@ -132,27 +131,27 @@ describe('DragonService', () => {
 
   describe('calculateCurrentCost', () => {
     it('should calculate cost based on owned count', () => {
-      const dragonEgg = DragonService.getDragonById('dragon_egg')!;
+      const eggLayer = DragonService.getDragonById('egg_layer')!;
 
-      const cost0 = DragonService.calculateCurrentCost(dragonEgg, 0);
-      const cost1 = DragonService.calculateCurrentCost(dragonEgg, 1);
-      const cost2 = DragonService.calculateCurrentCost(dragonEgg, 2);
+      const cost0 = DragonService.calculateCurrentCost(eggLayer, 0);
+      const cost1 = DragonService.calculateCurrentCost(eggLayer, 1);
+      const cost2 = DragonService.calculateCurrentCost(eggLayer, 2);
 
-      expect(cost0).toBe(5); // Base cost
-      expect(cost1).toBe(5 * 1.1); // Base cost * multiplier^1
-      expect(cost2).toBe(5 * Math.pow(1.1, 2)); // Base cost * multiplier^2
+      expect(cost0).toBe(20); // Base cost
+      expect(cost1).toBe(20 * 1.2); // Base cost * multiplier^1
+      expect(cost2).toBe(20 * Math.pow(1.2, 2)); // Base cost * multiplier^2
     });
   });
 
   describe('calculateTotalProduction', () => {
     it('should calculate total production for owned dragons', () => {
-      const dragonEgg = DragonService.getDragonById('dragon_egg')!;
+      const hatchling = DragonService.getDragonById('hatchling')!;
 
-      const production0 = DragonService.calculateTotalProduction(dragonEgg, 0);
-      const production3 = DragonService.calculateTotalProduction(dragonEgg, 3);
+      const production0 = DragonService.calculateTotalProduction(hatchling, 0);
+      const production3 = DragonService.calculateTotalProduction(hatchling, 3);
 
       expect(production0).toBe(0);
-      expect(production3).toBe(0.2 * 3); // Base rate * count
+      expect(production3).toBe(0.4 * 3); // Base rate * count
     });
   });
 
@@ -160,8 +159,8 @@ describe('DragonService', () => {
     it('should calculate total production rates for all owned dragons', () => {
       const productionRates = DragonService.getProductionRate(mockGameState);
 
-      expect(productionRates.meat).toBe(0.2 * 1 + 0.2 * 3); // 1 dragon egg + 3 hatchlings * 0.2 rate each
-      expect(productionRates.eggs).toBe(1.0 * 1); // 1 egg layer * 1.0 rate
+      expect(productionRates.meat).toBe(0.4 * 3); // 3 hatchlings * 0.4 rate each
+      expect(productionRates.eggs).toBe(0.5 * 1); // 1 egg layer * 0.5 rate
     });
 
     it('should return empty object when no dragons are owned', () => {

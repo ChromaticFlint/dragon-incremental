@@ -21,23 +21,22 @@ vi.mock('../services/dragonService', () => ({
 describe('App', () => {
   const mockGameStore = {
     resources: {
-      meat: new Decimal(10),
-      eggs: new Decimal(0),
+      meat: new Decimal(0),
+      eggs: new Decimal(3),
       energy: new Decimal(100),
       gold: new Decimal(0),
       dragonSouls: new Decimal(0),
       ancientPower: new Decimal(0),
       cosmicEssence: new Decimal(0),
     },
-    dragons: {
-      dragon_egg: 1,
-    },
+    dragons: {},
     settings: {
       numberFormat: 'suffix',
     },
     tick: vi.fn(),
     addResource: vi.fn(),
     resetGame: vi.fn(),
+    hatchEgg: vi.fn(),
   };
 
   beforeEach(() => {
@@ -45,6 +44,7 @@ describe('App', () => {
     mockGameStore.tick.mockClear();
     mockGameStore.addResource.mockClear();
     mockGameStore.resetGame.mockClear();
+    mockGameStore.hatchEgg.mockClear();
     
     // Mock window.confirm
     vi.spyOn(window, 'confirm').mockImplementation(() => true);
@@ -67,6 +67,7 @@ describe('App', () => {
     render(<App />);
     
     expect(screen.getByText('Admin Controls')).toBeInTheDocument();
+    expect(screen.getByText('Hatch Egg → Hatchling')).toBeInTheDocument();
     expect(screen.getByText('Generate Meat (+1)')).toBeInTheDocument();
     expect(screen.getByText('Generate Energy (+5)')).toBeInTheDocument();
     expect(screen.getByText('Reset Game')).toBeInTheDocument();
@@ -116,12 +117,21 @@ describe('App', () => {
     expect(mockGameStore.resetGame).not.toHaveBeenCalled();
   });
 
+  it('should hatch egg when hatch button is clicked', () => {
+    render(<App />);
+
+    const hatchButton = screen.getByText('Hatch Egg → Hatchling');
+    fireEvent.click(hatchButton);
+
+    expect(mockGameStore.hatchEgg).toHaveBeenCalledWith('hatchling', 1);
+  });
+
   it('should display admin control instructions', () => {
     render(<App />);
-    
-    expect(screen.getByText('Use these controls to test game progression:')).toBeInTheDocument();
-    expect(screen.getByText('Generate resources to buy first dragons')).toBeInTheDocument();
-    expect(screen.getByText('Reset to test early game balance')).toBeInTheDocument();
-    expect(screen.getByText('Watch unlock progression')).toBeInTheDocument();
+
+    expect(screen.getByText('New Resource Chain:')).toBeInTheDocument();
+    expect(screen.getByText('Hatch Eggs (3 free) → Hatchlings → Meat')).toBeInTheDocument();
+    expect(screen.getByText('Buy Egg Layers with Meat → More Eggs')).toBeInTheDocument();
+    expect(screen.getByText('Strategic choice: Hatch vs Save eggs')).toBeInTheDocument();
   });
 });

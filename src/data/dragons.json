@@ -3,28 +3,30 @@
     {
       "id": "dragon_egg",
       "name": "Dragon Egg",
-      "description": "A mysterious egg that slowly produces meat as it incubates. The foundation of your dragon empire.",
-      "baseCost": 5,
-      "costResource": "meat",
-      "costMultiplier": 1.1,
+      "description": "A mysterious egg waiting to be hatched into a Hatchling. Can be converted 1:1 into Hatchlings.",
+      "baseCost": 0,
+      "costResource": "eggs",
+      "costMultiplier": 1.0,
       "production": {
-        "resource": "meat",
-        "baseRate": 0.2
+        "resource": "none",
+        "baseRate": 0
       },
       "category": "starter",
       "rarity": 1,
-      "unlockCondition": null
+      "unlockCondition": null,
+      "isHatchable": true,
+      "hatchesInto": "hatchling"
     },
     {
       "id": "hatchling",
       "name": "Dragon Hatchling",
       "description": "A small but eager young dragon that produces meat by hunting small creatures.",
-      "baseCost": 12,
-      "costResource": "meat",
-      "costMultiplier": 1.15,
+      "baseCost": 1,
+      "costResource": "eggs",
+      "costMultiplier": 1.0,
       "production": {
         "resource": "meat",
-        "baseRate": 0.2
+        "baseRate": 0.4
       },
       "category": "basic",
       "rarity": 1,
@@ -34,19 +36,19 @@
       "id": "egg_layer",
       "name": "Egg Layer",
       "description": "A specialized dragon that focuses on egg production for the next generation.",
-      "baseCost": 80,
+      "baseCost": 20,
       "costResource": "meat",
-      "costMultiplier": 1.15,
+      "costMultiplier": 1.2,
       "production": {
         "resource": "eggs",
-        "baseRate": 1.0
+        "baseRate": 0.5
       },
       "category": "basic",
       "rarity": 1,
       "unlockCondition": {
         "type": "dragon",
         "target": "hatchling",
-        "value": 5
+        "value": 3
       }
     },
     {

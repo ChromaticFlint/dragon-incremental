@@ -14,12 +14,12 @@ describe('DragonCard', () => {
     id: 'hatchling',
     name: 'Dragon Hatchling',
     description: 'A small but eager young dragon that produces meat.',
-    baseCost: 12,
-    costResource: 'meat',
-    costMultiplier: 1.15,
+    baseCost: 1,
+    costResource: 'eggs',
+    costMultiplier: 1.0,
     production: {
       resource: 'meat',
-      baseRate: 0.2,
+      baseRate: 0.4,
     },
     category: 'basic',
     rarity: 1,
@@ -60,11 +60,11 @@ describe('DragonCard', () => {
     mockGameStore.canAfford.mockReturnValue(true);
     render(<DragonCard dragon={mockDragon} />);
 
-    // Cost should be baseCost * multiplier^owned = 12 * 1.15^2 ≈ 15.87
-    expect(screen.getByText(/15\.87/)).toBeInTheDocument();
+    // Cost should be baseCost * multiplier^owned = 1 * 1.0^2 = 1
+    expect(screen.getByText(/1\.00/)).toBeInTheDocument();
     // Look for the cost span specifically
     const costSpan = screen.getByText((_content, element) => {
-      return element?.className?.includes('text-green-400') && element?.textContent?.includes('meat') || false;
+      return element?.className?.includes('text-green-400') && element?.textContent?.includes('eggs') || false;
     });
     expect(costSpan).toBeInTheDocument();
   });
@@ -72,14 +72,14 @@ describe('DragonCard', () => {
   it('should display production information', () => {
     render(<DragonCard dragon={mockDragon} />);
     
-    expect(screen.getByText(/Produces: 0\.20 meat\/sec/)).toBeInTheDocument();
+    expect(screen.getByText(/Produces: 0\.40 meat\/sec/)).toBeInTheDocument();
   });
 
   it('should display total production when dragons are owned', () => {
     render(<DragonCard dragon={mockDragon} />);
     
-    // Total production = baseRate * owned = 0.2 * 2 = 0.4
-    expect(screen.getByText(/Total: 0\.40 meat\/sec/)).toBeInTheDocument();
+    // Total production = baseRate * owned = 0.4 * 2 = 0.8
+    expect(screen.getByText(/Total: 0\.80 meat\/sec/)).toBeInTheDocument();
   });
 
   it('should enable buy button when affordable', () => {
@@ -103,7 +103,7 @@ describe('DragonCard', () => {
     render(<DragonCard dragon={mockDragon} />);
 
     const costElement = screen.getByText((_content, element) => {
-      return element?.className?.includes('text-green-400') && element?.textContent?.includes('15.87') || false;
+      return element?.className?.includes('text-green-400') && element?.textContent?.includes('1.00') || false;
     });
     expect(costElement).toHaveClass('text-green-400');
   });
@@ -113,7 +113,7 @@ describe('DragonCard', () => {
     render(<DragonCard dragon={mockDragon} />);
 
     const costElement = screen.getByText((_content, element) => {
-      return element?.className?.includes('text-red-400') && element?.textContent?.includes('15.87') || false;
+      return element?.className?.includes('text-red-400') && element?.textContent?.includes('1.00') || false;
     });
     expect(costElement).toHaveClass('text-red-400');
   });
@@ -128,9 +128,9 @@ describe('DragonCard', () => {
     fireEvent.click(buyButton);
 
     expect(mockGameStore.purchaseDragon).toHaveBeenCalledWith('hatchling', {
-      baseCost: 12,
-      costResource: 'meat',
-      costMultiplier: 1.15,
+      baseCost: 1,
+      costResource: 'eggs',
+      costMultiplier: 1.0,
     });
   });
 
@@ -165,7 +165,7 @@ describe('DragonCard', () => {
     
     // Should call canAfford with the calculated cost
     expect(mockGameStore.canAfford).toHaveBeenCalledWith({
-      meat: expect.any(Number),
+      eggs: expect.any(Number),
     });
   });
 });

@@ -12,8 +12,8 @@ describe('GameStore', () => {
     it('should initialize with default resources as Decimal objects', () => {
       const state = useGameStore.getState();
 
-      expect(state.resources.meat).toEqual(new Decimal(10));
-      expect(state.resources.eggs).toEqual(new Decimal(0));
+      expect(state.resources.meat).toEqual(new Decimal(0));
+      expect(state.resources.eggs).toEqual(new Decimal(3));
       expect(state.resources.energy).toEqual(new Decimal(100));
       expect(state.resources.gold).toEqual(new Decimal(0));
 
@@ -30,7 +30,7 @@ describe('GameStore', () => {
       addResource('meat', new Decimal(5));
       
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(new Decimal(15));
+      expect(state.resources.meat).toEqual(new Decimal(5));
     });
 
     it('should track total resources earned in statistics', () => {
@@ -45,10 +45,12 @@ describe('GameStore', () => {
     });
 
     it('should spend resources when available', () => {
-      const { spendResource } = useGameStore.getState();
-      
+      const { spendResource, addResource } = useGameStore.getState();
+
+      // Add some meat first since we start with 0
+      addResource('meat', new Decimal(10));
       const success = spendResource('meat', new Decimal(5));
-      
+
       expect(success).toBe(true);
       const state = useGameStore.getState();
       expect(state.resources.meat).toEqual(new Decimal(5));
@@ -61,7 +63,7 @@ describe('GameStore', () => {
 
       expect(success).toBe(false);
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(new Decimal(10)); // Should remain unchanged
+      expect(state.resources.meat).toEqual(new Decimal(0)); // Should remain unchanged
     });
 
     it('should handle non-Decimal resource values in addResource', () => {
@@ -108,16 +110,18 @@ describe('GameStore', () => {
 
       const state = useGameStore.getState();
       expect(state.resources.meat).toBeInstanceOf(Decimal);
-      expect(state.resources.meat).toEqual(new Decimal(85)); // 10 + 100 - 50 + 25
+      expect(state.resources.meat).toEqual(new Decimal(75)); // 0 + 100 - 50 + 25
     });
   });
 
   describe('Affordability Checks', () => {
     it('should return true when resources are sufficient', () => {
-      const { canAfford } = useGameStore.getState();
-      
+      const { canAfford, addResource } = useGameStore.getState();
+
+      // Add some meat since we start with 0
+      addResource('meat', new Decimal(10));
       const result = canAfford({ meat: 5, energy: 50 });
-      
+
       expect(result).toBe(true);
     });
 
@@ -138,11 +142,14 @@ describe('GameStore', () => {
     });
 
     it('should handle multiple resource requirements', () => {
-      const { canAfford } = useGameStore.getState();
-      
+      const { canAfford, addResource } = useGameStore.getState();
+
+      // Add some meat since we start with 0
+      addResource('meat', new Decimal(20));
+
       const result1 = canAfford({ meat: 5, energy: 50 });
       const result2 = canAfford({ meat: 5, energy: 150 });
-      
+
       expect(result1).toBe(true);
       expect(result2).toBe(false);
     });
@@ -291,47 +298,47 @@ describe('GameStore', () => {
 
       // Check precision is preserved
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(new Decimal('133.456789012345')); // 10 + 123.456789012345
+      expect(state.resources.meat).toEqual(new Decimal('123.456789012345')); // 0 + 123.456789012345
       expect(state.resources.meat).toBeInstanceOf(Decimal);
     });
   });
 
   describe('Dragon Purchasing', () => {
     const mockDragonConfig = {
-      baseCost: 12,
+      baseCost: 20,
       costResource: 'meat',
-      costMultiplier: 1.15,
+      costMultiplier: 1.2,
     };
 
     it('should purchase dragon when resources are sufficient', () => {
       const { purchaseDragon, addResource } = useGameStore.getState();
 
-      // Add enough resources to afford the dragon
-      addResource('meat', new Decimal(5)); // Now we have 15 meat total
+      // Add enough resources to afford the dragon (egg layer costs 20 meat)
+      addResource('meat', new Decimal(20)); // Now we have 20 meat total
 
-      const success = purchaseDragon('hatchling', mockDragonConfig);
+      const success = purchaseDragon('egg_layer', mockDragonConfig);
 
       expect(success).toBe(true);
 
       const state = useGameStore.getState();
-      expect(state.dragons.hatchling).toBe(1);
-      expect(state.resources.meat).toEqual(new Decimal(3)); // 15 - 12 = 3
+      expect(state.dragons.egg_layer).toBe(1);
+      expect(state.resources.meat).toEqual(new Decimal(0)); // 20 - 20 = 0
       expect(state.statistics.dragonsHatched).toBe(1);
     });
 
     it('should not purchase dragon when resources are insufficient', () => {
-      const { purchaseDragon, spendResource } = useGameStore.getState();
+      const { purchaseDragon, addResource } = useGameStore.getState();
 
-      // Spend most of the meat
-      spendResource('meat', new Decimal(8));
+      // Add some meat but not enough for egg layer
+      addResource('meat', new Decimal(10)); // Only 10 meat, need 20
 
-      const success = purchaseDragon('hatchling', mockDragonConfig);
+      const success = purchaseDragon('egg_layer', mockDragonConfig);
 
       expect(success).toBe(false);
 
       const state = useGameStore.getState();
-      expect(state.dragons.hatchling).toBeUndefined();
-      expect(state.resources.meat).toEqual(new Decimal(2)); // Should remain unchanged
+      expect(state.dragons.egg_layer).toBeUndefined();
+      expect(state.resources.meat).toEqual(new Decimal(10)); // Should remain unchanged
     });
 
     it('should calculate increasing costs for multiple purchases', () => {
@@ -340,16 +347,16 @@ describe('GameStore', () => {
       // Add enough resources for multiple purchases
       addResource('meat', new Decimal(1000));
 
-      // First purchase should cost 12
-      const success1 = purchaseDragon('hatchling', mockDragonConfig);
+      // First purchase should cost 20
+      const success1 = purchaseDragon('egg_layer', mockDragonConfig);
       expect(success1).toBe(true);
 
-      // Second purchase should cost 12 * 1.15 = 13.8
-      const success2 = purchaseDragon('hatchling', mockDragonConfig);
+      // Second purchase should cost 20 * 1.2 = 24
+      const success2 = purchaseDragon('egg_layer', mockDragonConfig);
       expect(success2).toBe(true);
 
       const state = useGameStore.getState();
-      expect(state.dragons.hatchling).toBe(2);
+      expect(state.dragons.egg_layer).toBe(2);
       expect(state.statistics.dragonsHatched).toBe(2);
     });
 
@@ -358,11 +365,11 @@ describe('GameStore', () => {
 
       addResource('meat', new Decimal(100));
 
-      purchaseDragon('hatchling', mockDragonConfig);
-      purchaseDragon('hatchling', mockDragonConfig);
+      purchaseDragon('egg_layer', mockDragonConfig);
+      purchaseDragon('egg_layer', mockDragonConfig);
 
       const state = useGameStore.getState();
-      expect(state.statistics.maxDragonsOwned.hatchling).toBe(2);
+      expect(state.statistics.maxDragonsOwned.egg_layer).toBe(2);
     });
   });
 
@@ -370,11 +377,11 @@ describe('GameStore', () => {
     const mockDragonConfigs = [
       {
         id: 'hatchling',
-        production: { resource: 'meat', baseRate: 0.2 },
+        production: { resource: 'meat', baseRate: 0.4 },
       },
       {
         id: 'egg_layer',
-        production: { resource: 'eggs', baseRate: 1.0 },
+        production: { resource: 'eggs', baseRate: 0.5 },
       },
     ];
 
@@ -392,8 +399,8 @@ describe('GameStore', () => {
       calculateDragonProduction(mockDragonConfigs);
 
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(initialMeat.add(0.6)); // 3 * 0.2
-      expect(state.resources.eggs).toEqual(initialEggs.add(2.0)); // 2 * 1.0
+      expect(state.resources.meat).toEqual(initialMeat.add(1.2)); // 3 * 0.4
+      expect(state.resources.eggs).toEqual(initialEggs.add(1.0)); // 2 * 0.5
     });
 
     it('should not produce resources when no dragons are owned', () => {
@@ -411,28 +418,36 @@ describe('GameStore', () => {
   });
 
   describe('Initial Game State', () => {
-    it('should start with a Dragon Egg for bootstrapping', () => {
+    it('should start with eggs for hatching', () => {
       const state = useGameStore.getState();
 
-      expect(state.dragons.dragon_egg).toBe(1);
+      expect(state.resources.eggs).toEqual(new Decimal(3));
+      expect(state.resources.meat).toEqual(new Decimal(0));
     });
 
-    it('should allow Dragon Egg to produce meat immediately', () => {
-      const { calculateDragonProduction } = useGameStore.getState();
+    it('should allow hatching eggs into hatchlings', () => {
+      const { hatchEgg } = useGameStore.getState();
 
-      const dragonConfigs = [
-        {
-          id: 'dragon_egg',
-          production: { resource: 'meat', baseRate: 0.2 },
-        },
-      ];
+      const success = hatchEgg('hatchling', 1);
 
-      const initialMeat = useGameStore.getState().resources.meat;
-
-      calculateDragonProduction(dragonConfigs);
+      expect(success).toBe(true);
 
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(initialMeat.add(0.2)); // 1 egg * 0.2 rate
+      expect(state.dragons.hatchling).toBe(1);
+      expect(state.resources.eggs).toEqual(new Decimal(2)); // 3 - 1 = 2
+      expect(state.statistics.dragonsHatched).toBe(1);
+    });
+
+    it('should not allow hatching more eggs than available', () => {
+      const { hatchEgg } = useGameStore.getState();
+
+      const success = hatchEgg('hatchling', 5); // Try to hatch 5 eggs when we only have 3
+
+      expect(success).toBe(false);
+
+      const state = useGameStore.getState();
+      expect(state.dragons.hatchling).toBeUndefined();
+      expect(state.resources.eggs).toEqual(new Decimal(3)); // Should remain unchanged
     });
   });
 
@@ -447,9 +462,9 @@ describe('GameStore', () => {
       resetGame();
 
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(new Decimal(10));
+      expect(state.resources.meat).toEqual(new Decimal(0));
+      expect(state.resources.eggs).toEqual(new Decimal(3)); // Should have 3 starter eggs
       expect(state.settings.autoSave).toBe(true);
-      expect(state.dragons.dragon_egg).toBe(1); // Should still have the starter egg
     });
   });
 });

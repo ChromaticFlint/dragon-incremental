@@ -22,6 +22,7 @@ interface GameStore extends GameState {
   spendResource: (resource: string, amount: Decimal) => boolean;
   canAfford: (costs: Record<string, number>) => boolean;
   purchaseDragon: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }) => boolean;
+  hatchEgg: (targetDragonId: string, amount?: number) => boolean;
   calculateDragonProduction: (dragonConfigs: Array<{ id: string; production: { resource: string; baseRate: number } }>) => void;
   updateSettings: (settings: Partial<GameSettings>) => void;
   updateStatistics: (stats: Partial<GameStatistics>) => void;
@@ -33,17 +34,15 @@ interface GameStore extends GameState {
 
 const initialGameState: GameState = {
   resources: {
-    meat: new Decimal(10),
-    eggs: new Decimal(0),
+    meat: new Decimal(0),
+    eggs: new Decimal(3), // Start with 3 eggs to hatch into hatchlings
     energy: new Decimal(100),
     gold: new Decimal(0),
     dragonSouls: new Decimal(0),
     ancientPower: new Decimal(0),
     cosmicEssence: new Decimal(0),
   },
-  dragons: {
-    dragon_egg: 1, // Start with 1 free Dragon Egg to bootstrap the economy
-  },
+  dragons: {},
   upgrades: [],
   achievements: [],
   evolutions: [],
@@ -170,6 +169,42 @@ export const useGameStore = create<GameStore>()(
           maxDragonsOwned: {
             ...state.statistics.maxDragonsOwned,
             [dragonId]: Math.max(state.statistics.maxDragonsOwned[dragonId] || 0, (state.dragons[dragonId] || 0) + 1),
+          },
+        },
+      }));
+
+      return true;
+    },
+
+    hatchEgg: (targetDragonId: string, amount: number = 1) => {
+      const state = get();
+
+      // Check if we have enough eggs
+      const eggsAvailable = state.resources.eggs || new Decimal(0);
+      if (eggsAvailable.lt(amount)) {
+        return false;
+      }
+
+      // Spend the eggs
+      if (!get().spendResource('eggs', new Decimal(amount))) {
+        return false;
+      }
+
+      // Add the hatched dragons
+      set((state) => ({
+        dragons: {
+          ...state.dragons,
+          [targetDragonId]: (state.dragons[targetDragonId] || 0) + amount,
+        },
+        statistics: {
+          ...state.statistics,
+          dragonsHatched: state.statistics.dragonsHatched + amount,
+          maxDragonsOwned: {
+            ...state.statistics.maxDragonsOwned,
+            [targetDragonId]: Math.max(
+              state.statistics.maxDragonsOwned[targetDragonId] || 0,
+              (state.dragons[targetDragonId] || 0) + amount
+            ),
           },
         },
       }));
