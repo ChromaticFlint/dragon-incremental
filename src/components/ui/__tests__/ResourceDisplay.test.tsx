@@ -45,8 +45,8 @@ describe('ResourceDisplay', () => {
   it('should show rate when showRate is true and rate > 0', () => {
     render(<ResourceDisplay resource="meat" showRate />);
 
-    // Should show production rate from dragons (2 hatchlings * 0.4 = 0.8/sec)
-    expect(screen.getByText(/0\.80\/sec/)).toBeInTheDocument();
+    // Should show production rate from dragons (2 hatchlings * 1.0 = 2.0/sec)
+    expect(screen.getByText(/2\.00\/sec/)).toBeInTheDocument();
   });
 
   it('should handle zero resources', () => {

@@ -10,29 +10,105 @@
       "costMultiplier": 1.0,
       "production": {
         "resource": "meat",
-        "baseRate": 0.4
+        "baseRate": 1.0
       },
       "category": "basic",
       "rarity": 1,
       "unlockCondition": null
     },
     {
-      "id": "egg_layer",
-      "name": "Egg Layer",
-      "description": "A specialized dragon that focuses on egg production for the next generation.",
-      "baseCost": 20,
+      "id": "young_dragon",
+      "name": "Young Dragon",
+      "description": "A maturing dragon that commands hatchlings to gather more meat efficiently.",
+      "baseCost": 15,
       "costResource": "meat",
-      "costMultiplier": 1.2,
+      "costMultiplier": 1.15,
       "production": {
-        "resource": "eggs",
-        "baseRate": 0.5
+        "resource": "hatchlings",
+        "baseRate": 2.0
       },
       "category": "basic",
       "rarity": 1,
       "unlockCondition": {
         "type": "dragon",
         "target": "hatchling",
-        "value": 3
+        "value": 10
+      }
+    },
+    {
+      "id": "adult_dragon",
+      "name": "Adult Dragon",
+      "description": "A powerful adult dragon that leads young dragons in coordinated hunts.",
+      "baseCost": 200,
+      "costResource": "meat",
+      "costMultiplier": 1.15,
+      "production": {
+        "resource": "young_dragons",
+        "baseRate": 3.0
+      },
+      "category": "intermediate",
+      "rarity": 2,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "young_dragon",
+        "value": 10
+      }
+    },
+    {
+      "id": "elder_dragon",
+      "name": "Elder Dragon",
+      "description": "An ancient and wise dragon that oversees entire colonies of lesser dragons.",
+      "baseCost": 3000,
+      "costResource": "meat",
+      "costMultiplier": 1.15,
+      "production": {
+        "resource": "adult_dragons",
+        "baseRate": 4.0
+      },
+      "category": "intermediate",
+      "rarity": 2,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "adult_dragon",
+        "value": 10
+      }
+    },
+    {
+      "id": "dragon_lord",
+      "name": "Dragon Lord",
+      "description": "A legendary dragon ruler that commands vast armies of elder dragons.",
+      "baseCost": 50000,
+      "costResource": "meat",
+      "costMultiplier": 1.2,
+      "production": {
+        "resource": "elder_dragons",
+        "baseRate": 5.0
+      },
+      "category": "advanced",
+      "rarity": 3,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "elder_dragon",
+        "value": 10
+      }
+    },
+    {
+      "id": "egg_layer",
+      "name": "Egg Layer",
+      "description": "A specialized dragon that focuses on egg production for the next generation.",
+      "baseCost": 100,
+      "costResource": "meat",
+      "costMultiplier": 1.2,
+      "production": {
+        "resource": "eggs",
+        "baseRate": 1.0
+      },
+      "category": "basic",
+      "rarity": 1,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "hatchling",
+        "value": 5
       }
     },
     {

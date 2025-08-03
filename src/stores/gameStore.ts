@@ -38,6 +38,10 @@ const initialGameState: GameState = {
   resources: {
     meat: new Decimal(0),
     eggs: new Decimal(3), // Start with 3 eggs to hatch into hatchlings
+    hatchlings: new Decimal(0),
+    young_dragons: new Decimal(0),
+    adult_dragons: new Decimal(0),
+    elder_dragons: new Decimal(0),
     energy: new Decimal(100),
     gold: new Decimal(0),
     dragonSouls: new Decimal(0),
@@ -298,6 +302,7 @@ export const useGameStore = create<GameStore>()(
 
       // Calculate total production for each resource
       const production: Record<string, Decimal> = {};
+      const dragonProduction: Record<string, Decimal> = {};
 
       for (const config of dragonConfigs) {
         const owned = state.dragons[config.id] || 0;
@@ -305,10 +310,21 @@ export const useGameStore = create<GameStore>()(
           const resourceProduced = config.production.resource;
           const totalProduction = new Decimal(config.production.baseRate).mul(owned);
 
-          if (!production[resourceProduced]) {
-            production[resourceProduced] = new Decimal(0);
+          // Handle dragon-producing-dragon resources
+          if (resourceProduced.endsWith('s') && resourceProduced !== 'eggs') {
+            // This produces dragons (e.g., "hatchlings" -> add to "hatchling" dragon count)
+            const dragonType = resourceProduced.slice(0, -1); // Remove 's'
+            if (!dragonProduction[dragonType]) {
+              dragonProduction[dragonType] = new Decimal(0);
+            }
+            dragonProduction[dragonType] = dragonProduction[dragonType].add(totalProduction);
+          } else {
+            // This produces regular resources
+            if (!production[resourceProduced]) {
+              production[resourceProduced] = new Decimal(0);
+            }
+            production[resourceProduced] = production[resourceProduced].add(totalProduction);
           }
-          production[resourceProduced] = production[resourceProduced].add(totalProduction);
         }
       }
 
@@ -317,6 +333,19 @@ export const useGameStore = create<GameStore>()(
         if (amount.gt(0)) {
           get().addResource(resource, amount);
         }
+      }
+
+      // Apply dragon production
+      if (Object.keys(dragonProduction).length > 0) {
+        set((state) => {
+          const newDragons = { ...state.dragons };
+          Object.entries(dragonProduction).forEach(([dragonType, amount]) => {
+            newDragons[dragonType] = (newDragons[dragonType] || 0) + amount.toNumber();
+          });
+          return {
+            dragons: newDragons,
+          };
+        });
       }
     },
 
