@@ -108,7 +108,7 @@
       "unlockCondition": {
         "type": "dragon",
         "target": "hatchling",
-        "value": 5
+        "value": 3
       }
     },
     {

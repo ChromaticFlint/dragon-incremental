@@ -104,13 +104,13 @@ describe('DragonService', () => {
     it('should check dragon count unlock conditions', () => {
       const eggLayer = DragonService.getDragonById('egg_layer')!;
 
-      // Should be unlocked with 5 hatchlings (requirement is 5)
-      mockGameState.dragons.hatchling = 5;
+      // Should be unlocked with 3 hatchlings (requirement is 3)
+      mockGameState.dragons.hatchling = 3;
       const isUnlocked = DragonService.isDragonUnlocked(eggLayer, mockGameState);
       expect(isUnlocked).toBe(true);
 
       // Should not be unlocked with insufficient hatchlings
-      mockGameState.dragons.hatchling = 4;
+      mockGameState.dragons.hatchling = 2;
       const isNotUnlocked = DragonService.isDragonUnlocked(eggLayer, mockGameState);
       expect(isNotUnlocked).toBe(false);
     });
