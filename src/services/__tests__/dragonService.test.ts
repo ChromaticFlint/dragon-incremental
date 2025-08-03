@@ -65,11 +65,11 @@ describe('DragonService', () => {
 
   describe('getDragonById', () => {
     it('should return dragon configuration by id', () => {
-      const dragon = DragonService.getDragonById('dragon_egg');
+      const dragon = DragonService.getDragonById('hatchling');
 
       expect(dragon).toBeDefined();
-      expect(dragon?.id).toBe('dragon_egg');
-      expect(dragon?.name).toBe('Dragon Egg');
+      expect(dragon?.id).toBe('hatchling');
+      expect(dragon?.name).toBe('Dragon Hatchling');
     });
 
     it('should return undefined for non-existent dragon', () => {

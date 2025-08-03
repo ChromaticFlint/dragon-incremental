@@ -1,22 +1,6 @@
 {
   "dragons": [
-    {
-      "id": "dragon_egg",
-      "name": "Dragon Egg",
-      "description": "A mysterious egg waiting to be hatched into a Hatchling. Can be converted 1:1 into Hatchlings.",
-      "baseCost": 0,
-      "costResource": "eggs",
-      "costMultiplier": 1.0,
-      "production": {
-        "resource": "none",
-        "baseRate": 0
-      },
-      "category": "starter",
-      "rarity": 1,
-      "unlockCondition": null,
-      "isHatchable": true,
-      "hatchesInto": "hatchling"
-    },
+
     {
       "id": "hatchling",
       "name": "Dragon Hatchling",

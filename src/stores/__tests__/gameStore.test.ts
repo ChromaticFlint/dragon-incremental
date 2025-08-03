@@ -382,13 +382,50 @@ describe('GameStore', () => {
       costMultiplier: 1.0,
     };
 
-    it('should calculate max affordable correctly', () => {
+    it('should calculate max affordable correctly with cost multiplier 1.0', () => {
       const { calculateMaxAffordable } = useGameStore.getState();
 
       // With 3 eggs and hatchlings costing 1 egg each (no multiplier), should afford 3
       const maxAffordable = calculateMaxAffordable('hatchling', mockHatchlingConfig);
 
       expect(maxAffordable).toBe(3);
+    });
+
+    it('should handle cost multiplier 1.0 without infinite loop', () => {
+      const { calculateMaxAffordable, addResource } = useGameStore.getState();
+
+      // Add a large number of eggs to test the 1.0 multiplier case
+      addResource('eggs', new Decimal(1000));
+
+      const start = Date.now();
+      const maxAffordable = calculateMaxAffordable('hatchling', mockHatchlingConfig);
+      const duration = Date.now() - start;
+
+      // Should complete quickly (under 100ms) and return correct result
+      expect(duration).toBeLessThan(100);
+      expect(maxAffordable).toBe(1003); // 3 initial + 1000 added
+    });
+
+    it('should prevent infinite loops with safety limit', () => {
+      const { calculateMaxAffordable, addResource } = useGameStore.getState();
+
+      // Test with a very small cost multiplier that could cause issues
+      addResource('meat', new Decimal(1000000));
+
+      const problematicConfig = {
+        baseCost: 1,
+        costResource: 'meat',
+        costMultiplier: 1.000001, // Very small multiplier
+      };
+
+      const start = Date.now();
+      const maxAffordable = calculateMaxAffordable('test_dragon', problematicConfig);
+      const duration = Date.now() - start;
+
+      // Should complete quickly even with problematic multiplier
+      expect(duration).toBeLessThan(1000);
+      expect(maxAffordable).toBeGreaterThan(0);
+      expect(maxAffordable).toBeLessThanOrEqual(1000); // Safety limit
     });
 
     it('should calculate max affordable with cost multiplier', () => {
@@ -455,6 +492,65 @@ describe('GameStore', () => {
       expect(state.dragons.egg_layer).toBe(3);
       // Total cost: 20 + 24 + 28.8 = 72.8
       expect(state.resources.meat.toNumber()).toBeCloseTo(27.2, 1); // 100 - 72.8
+    });
+  });
+
+  describe('Infinite Loop Prevention', () => {
+    it('should not cause infinite loading when calculating max affordable for hatchlings', () => {
+      const { calculateMaxAffordable } = useGameStore.getState();
+
+      // This was the exact scenario causing infinite loading
+      const hatchlingConfig = {
+        baseCost: 1,
+        costResource: 'eggs',
+        costMultiplier: 1.0, // This caused the infinite loop
+      };
+
+      const start = Date.now();
+      const maxAffordable = calculateMaxAffordable('hatchling', hatchlingConfig);
+      const duration = Date.now() - start;
+
+      // Should complete instantly and return correct result
+      expect(duration).toBeLessThan(10);
+      expect(maxAffordable).toBe(3); // 3 eggs available
+    });
+
+    it('should handle edge case of zero resources without hanging', () => {
+      const { calculateMaxAffordable, spendResource } = useGameStore.getState();
+
+      // Spend all eggs
+      spendResource('eggs', new Decimal(3));
+
+      const hatchlingConfig = {
+        baseCost: 1,
+        costResource: 'eggs',
+        costMultiplier: 1.0,
+      };
+
+      const start = Date.now();
+      const maxAffordable = calculateMaxAffordable('hatchling', hatchlingConfig);
+      const duration = Date.now() - start;
+
+      expect(duration).toBeLessThan(10);
+      expect(maxAffordable).toBe(0);
+    });
+
+    it('should handle fractional resources correctly with 1.0 multiplier', () => {
+      const { calculateMaxAffordable, addResource } = useGameStore.getState();
+
+      // Add fractional eggs
+      addResource('eggs', new Decimal(2.7));
+
+      const hatchlingConfig = {
+        baseCost: 1,
+        costResource: 'eggs',
+        costMultiplier: 1.0,
+      };
+
+      const maxAffordable = calculateMaxAffordable('hatchling', hatchlingConfig);
+
+      // Should floor the result: (3 + 2.7) / 1 = 5.7 -> 5
+      expect(maxAffordable).toBe(5);
     });
   });
 

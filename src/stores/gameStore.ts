@@ -183,6 +183,12 @@ export const useGameStore = create<GameStore>()(
       const owned = state.dragons[dragonId] || 0;
       const availableResource = state.resources[dragonConfig.costResource] || new Decimal(0);
 
+      // Handle cost multiplier of 1.0 (no scaling) - simple division
+      if (dragonConfig.costMultiplier === 1.0) {
+        const costPerDragon = new Decimal(dragonConfig.baseCost);
+        return Math.floor(availableResource.div(costPerDragon).toNumber());
+      }
+
       let maxAffordable = 0;
       let totalCost = new Decimal(0);
       let currentCost = new Decimal(dragonConfig.baseCost).mul(
@@ -190,10 +196,15 @@ export const useGameStore = create<GameStore>()(
       );
 
       // Calculate how many we can afford with geometric series
-      while (totalCost.add(currentCost).lte(availableResource)) {
+      // Add safety limit to prevent infinite loops
+      const maxIterations = 1000;
+      let iterations = 0;
+
+      while (totalCost.add(currentCost).lte(availableResource) && iterations < maxIterations) {
         totalCost = totalCost.add(currentCost);
         maxAffordable++;
         currentCost = currentCost.mul(dragonConfig.costMultiplier);
+        iterations++;
       }
 
       return maxAffordable;
