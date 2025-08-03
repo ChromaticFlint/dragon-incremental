@@ -37,7 +37,7 @@ interface GameStore extends GameState {
 const initialGameState: GameState = {
   resources: {
     meat: new Decimal(0),
-    eggs: new Decimal(3), // Start with 3 eggs to hatch into hatchlings
+    eggs: new Decimal(0), // Start with 0 eggs, Egg Layer will produce them
     hatchlings: new Decimal(0),
     young_dragons: new Decimal(0),
     adult_dragons: new Decimal(0),
@@ -48,7 +48,9 @@ const initialGameState: GameState = {
     ancientPower: new Decimal(0),
     cosmicEssence: new Decimal(0),
   },
-  dragons: {},
+  dragons: {
+    egg_layer: 1, // Start with 1 Egg Layer to bootstrap the economy
+  },
   upgrades: [],
   achievements: [],
   evolutions: [],

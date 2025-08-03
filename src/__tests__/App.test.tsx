@@ -22,14 +22,16 @@ describe('App', () => {
   const mockGameStore = {
     resources: {
       meat: new Decimal(0),
-      eggs: new Decimal(3),
+      eggs: new Decimal(0),
       energy: new Decimal(100),
       gold: new Decimal(0),
       dragonSouls: new Decimal(0),
       ancientPower: new Decimal(0),
       cosmicEssence: new Decimal(0),
     },
-    dragons: {},
+    dragons: {
+      egg_layer: 1,
+    },
     settings: {
       numberFormat: 'suffix',
     },
@@ -129,9 +131,10 @@ describe('App', () => {
   it('should display admin control instructions', () => {
     render(<App />);
 
-    expect(screen.getByText('New Resource Chain:')).toBeInTheDocument();
-    expect(screen.getByText('Hatch Eggs (3 free) → Hatchlings → Meat')).toBeInTheDocument();
-    expect(screen.getByText('Buy Egg Layers with Meat → More Eggs')).toBeInTheDocument();
+    expect(screen.getByText('SwarmSim-Style Resource Chain:')).toBeInTheDocument();
+    expect(screen.getByText('Start: 1 Egg Layer → Produces Eggs')).toBeInTheDocument();
+    expect(screen.getByText('Hatch Eggs → Hatchlings → Meat')).toBeInTheDocument();
+    expect(screen.getByText('Buy more Egg Layers with Meat → More Eggs')).toBeInTheDocument();
     expect(screen.getByText('Strategic choice: Hatch vs Save eggs')).toBeInTheDocument();
   });
 });

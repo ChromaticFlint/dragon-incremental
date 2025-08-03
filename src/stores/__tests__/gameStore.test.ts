@@ -13,7 +13,8 @@ describe('GameStore', () => {
       const state = useGameStore.getState();
 
       expect(state.resources.meat).toEqual(new Decimal(0));
-      expect(state.resources.eggs).toEqual(new Decimal(3));
+      expect(state.resources.eggs).toEqual(new Decimal(0));
+      expect(state.dragons.egg_layer).toBe(1);
       expect(state.resources.energy).toEqual(new Decimal(100));
       expect(state.resources.gold).toEqual(new Decimal(0));
 
@@ -305,7 +306,7 @@ describe('GameStore', () => {
 
   describe('Dragon Purchasing', () => {
     const mockDragonConfig = {
-      baseCost: 20,
+      baseCost: 100,
       costResource: 'meat',
       costMultiplier: 1.2,
     };
@@ -315,16 +316,16 @@ describe('GameStore', () => {
     it('should purchase dragon when resources are sufficient', () => {
       const { purchaseDragon, addResource } = useGameStore.getState();
 
-      // Add enough resources to afford the dragon (egg layer costs 20 meat)
-      addResource('meat', new Decimal(20)); // Now we have 20 meat total
+      // Add enough resources to afford the dragon (egg layer costs 100 * 1.2^1 = 120 meat since we have 1)
+      addResource('meat', new Decimal(120)); // Now we have 120 meat total
 
       const success = purchaseDragon('egg_layer', mockDragonConfig);
 
       expect(success).toBe(true);
 
       const state = useGameStore.getState();
-      expect(state.dragons.egg_layer).toBe(1);
-      expect(state.resources.meat).toEqual(new Decimal(0)); // 20 - 20 = 0
+      expect(state.dragons.egg_layer).toBe(2); // 1 starter + 1 purchased
+      expect(state.resources.meat).toEqual(new Decimal(0)); // 120 - 120 = 0
       expect(state.statistics.dragonsHatched).toBe(1);
     });
 
@@ -332,15 +333,15 @@ describe('GameStore', () => {
       const { purchaseDragon, addResource } = useGameStore.getState();
 
       // Add some meat but not enough for egg layer
-      addResource('meat', new Decimal(10)); // Only 10 meat, need 20
+      addResource('meat', new Decimal(50)); // Only 50 meat, need 100
 
       const success = purchaseDragon('egg_layer', mockDragonConfig);
 
       expect(success).toBe(false);
 
       const state = useGameStore.getState();
-      expect(state.dragons.egg_layer).toBeUndefined();
-      expect(state.resources.meat).toEqual(new Decimal(10)); // Should remain unchanged
+      expect(state.dragons.egg_layer).toBe(1); // Should still have the starter Egg Layer
+      expect(state.resources.meat).toEqual(new Decimal(50)); // Should remain unchanged
     });
 
     it('should calculate increasing costs for multiple purchases', () => {
@@ -349,29 +350,29 @@ describe('GameStore', () => {
       // Add enough resources for multiple purchases
       addResource('meat', new Decimal(1000));
 
-      // First purchase should cost 20
+      // First purchase should cost 100 * 1.2^1 = 120 (since we already have 1)
       const success1 = purchaseDragon('egg_layer', mockDragonConfig);
       expect(success1).toBe(true);
 
-      // Second purchase should cost 20 * 1.2 = 24
+      // Second purchase should cost 100 * 1.2^2 = 144
       const success2 = purchaseDragon('egg_layer', mockDragonConfig);
       expect(success2).toBe(true);
 
       const state = useGameStore.getState();
-      expect(state.dragons.egg_layer).toBe(2);
+      expect(state.dragons.egg_layer).toBe(3); // 1 starter + 2 purchased
       expect(state.statistics.dragonsHatched).toBe(2);
     });
 
     it('should update max dragons owned statistic', () => {
       const { purchaseDragon, addResource } = useGameStore.getState();
 
-      addResource('meat', new Decimal(100));
+      addResource('meat', new Decimal(300)); // Enough for 120 + 144 = 264 meat
 
       purchaseDragon('egg_layer', mockDragonConfig);
       purchaseDragon('egg_layer', mockDragonConfig);
 
       const state = useGameStore.getState();
-      expect(state.statistics.maxDragonsOwned.egg_layer).toBe(2);
+      expect(state.statistics.maxDragonsOwned.egg_layer).toBe(3); // 1 starter + 2 purchased
     });
   });
 
@@ -383,7 +384,10 @@ describe('GameStore', () => {
     };
 
     it('should calculate max affordable correctly with cost multiplier 1.0', () => {
-      const { calculateMaxAffordable } = useGameStore.getState();
+      const { calculateMaxAffordable, addResource } = useGameStore.getState();
+
+      // Add some eggs since we start with 0
+      addResource('eggs', new Decimal(3));
 
       // With 3 eggs and hatchlings costing 1 egg each (no multiplier), should afford 3
       const maxAffordable = calculateMaxAffordable('hatchling', mockHatchlingConfig);
@@ -403,7 +407,7 @@ describe('GameStore', () => {
 
       // Should complete quickly (under 100ms) and return correct result
       expect(duration).toBeLessThan(100);
-      expect(maxAffordable).toBe(1003); // 3 initial + 1000 added
+      expect(maxAffordable).toBe(1000); // 0 initial + 1000 added
     });
 
     it('should prevent infinite loops with safety limit', () => {
@@ -448,7 +452,10 @@ describe('GameStore', () => {
     });
 
     it('should purchase multiple dragons with bulk purchase', () => {
-      const { purchaseDragonBulk } = useGameStore.getState();
+      const { purchaseDragonBulk, addResource } = useGameStore.getState();
+
+      // Add some eggs since we start with 0
+      addResource('eggs', new Decimal(3));
 
       const purchased = purchaseDragonBulk('hatchling', mockHatchlingConfig, 2);
 
@@ -463,41 +470,44 @@ describe('GameStore', () => {
     it('should not purchase more than affordable in bulk', () => {
       const { purchaseDragonBulk } = useGameStore.getState();
 
-      // Try to buy 5 hatchlings when we only have 3 eggs
+      // Try to buy 5 hatchlings when we have 0 eggs
       const purchased = purchaseDragonBulk('hatchling', mockHatchlingConfig, 5);
 
       expect(purchased).toBe(0);
 
       const state = useGameStore.getState();
       expect(state.dragons.hatchling).toBeUndefined();
-      expect(state.resources.eggs).toEqual(new Decimal(3)); // Should remain unchanged
+      expect(state.resources.eggs).toEqual(new Decimal(0)); // Should remain unchanged
     });
 
     it('should handle bulk purchase with cost scaling', () => {
       const { purchaseDragonBulk, addResource } = useGameStore.getState();
 
-      addResource('meat', new Decimal(100));
+      addResource('meat', new Decimal(500)); // Add enough for multiple purchases
 
       const eggLayerConfig = {
-        baseCost: 20,
+        baseCost: 100,
         costResource: 'meat',
         costMultiplier: 1.2,
       };
 
-      const purchased = purchaseDragonBulk('egg_layer', eggLayerConfig, 3);
+      const purchased = purchaseDragonBulk('egg_layer', eggLayerConfig, 2); // Try to buy 2 more
 
-      expect(purchased).toBe(3);
+      expect(purchased).toBe(2);
 
       const state = useGameStore.getState();
-      expect(state.dragons.egg_layer).toBe(3);
-      // Total cost: 20 + 24 + 28.8 = 72.8
-      expect(state.resources.meat.toNumber()).toBeCloseTo(27.2, 1); // 100 - 72.8
+      expect(state.dragons.egg_layer).toBe(3); // 1 starter + 2 purchased
+      // Total cost: 100*1.2^1 + 100*1.2^2 = 120 + 144 = 264
+      expect(state.resources.meat.toNumber()).toBeCloseTo(236, 1); // 500 - 264
     });
   });
 
   describe('Infinite Loop Prevention', () => {
     it('should not cause infinite loading when calculating max affordable for hatchlings', () => {
-      const { calculateMaxAffordable } = useGameStore.getState();
+      const { calculateMaxAffordable, addResource } = useGameStore.getState();
+
+      // Add some eggs since we start with 0
+      addResource('eggs', new Decimal(3));
 
       // This was the exact scenario causing infinite loading
       const hatchlingConfig = {
@@ -549,8 +559,8 @@ describe('GameStore', () => {
 
       const maxAffordable = calculateMaxAffordable('hatchling', hatchlingConfig);
 
-      // Should floor the result: (3 + 2.7) / 1 = 5.7 -> 5
-      expect(maxAffordable).toBe(5);
+      // Should floor the result: (0 + 2.7) / 1 = 2.7 -> 2
+      expect(maxAffordable).toBe(2);
     });
   });
 
@@ -558,11 +568,11 @@ describe('GameStore', () => {
     const mockDragonConfigs = [
       {
         id: 'hatchling',
-        production: { resource: 'meat', baseRate: 0.4 },
+        production: { resource: 'meat', baseRate: 1.0 },
       },
       {
         id: 'egg_layer',
-        production: { resource: 'eggs', baseRate: 0.5 },
+        production: { resource: 'eggs', baseRate: 1.0 },
       },
     ];
 
@@ -580,11 +590,11 @@ describe('GameStore', () => {
       calculateDragonProduction(mockDragonConfigs);
 
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(initialMeat.add(1.2)); // 3 * 0.4
-      expect(state.resources.eggs).toEqual(initialEggs.add(1.0)); // 2 * 0.5
+      expect(state.resources.meat).toEqual(initialMeat.add(3.0)); // 3 * 1.0
+      expect(state.resources.eggs).toEqual(initialEggs.add(2.0)); // 2 * 1.0
     });
 
-    it('should not produce resources when no dragons are owned', () => {
+    it('should produce resources from starter Egg Layer only', () => {
       const { calculateDragonProduction } = useGameStore.getState();
 
       const initialMeat = useGameStore.getState().resources.meat;
@@ -593,21 +603,25 @@ describe('GameStore', () => {
       calculateDragonProduction(mockDragonConfigs);
 
       const state = useGameStore.getState();
-      expect(state.resources.meat).toEqual(initialMeat);
-      expect(state.resources.eggs).toEqual(initialEggs);
+      expect(state.resources.meat).toEqual(initialMeat); // No hatchlings, so no meat production
+      expect(state.resources.eggs).toEqual(initialEggs.add(1.0)); // 1 starter Egg Layer produces 1 egg
     });
   });
 
   describe('Initial Game State', () => {
-    it('should start with eggs for hatching', () => {
+    it('should start with an Egg Layer for bootstrapping', () => {
       const state = useGameStore.getState();
 
-      expect(state.resources.eggs).toEqual(new Decimal(3));
+      expect(state.resources.eggs).toEqual(new Decimal(0));
       expect(state.resources.meat).toEqual(new Decimal(0));
+      expect(state.dragons.egg_layer).toBe(1);
     });
 
-    it('should allow hatching eggs into hatchlings', () => {
-      const { hatchEgg } = useGameStore.getState();
+    it('should allow hatching eggs into hatchlings when eggs are available', () => {
+      const { hatchEgg, addResource } = useGameStore.getState();
+
+      // Add some eggs first since we start with 0
+      addResource('eggs', new Decimal(2));
 
       const success = hatchEgg('hatchling', 1);
 
@@ -615,20 +629,20 @@ describe('GameStore', () => {
 
       const state = useGameStore.getState();
       expect(state.dragons.hatchling).toBe(1);
-      expect(state.resources.eggs).toEqual(new Decimal(2)); // 3 - 1 = 2
+      expect(state.resources.eggs).toEqual(new Decimal(1)); // 2 - 1 = 1
       expect(state.statistics.dragonsHatched).toBe(1);
     });
 
-    it('should not allow hatching more eggs than available', () => {
+    it('should not allow hatching when no eggs are available', () => {
       const { hatchEgg } = useGameStore.getState();
 
-      const success = hatchEgg('hatchling', 5); // Try to hatch 5 eggs when we only have 3
+      const success = hatchEgg('hatchling', 1); // Try to hatch when we have 0 eggs
 
       expect(success).toBe(false);
 
       const state = useGameStore.getState();
       expect(state.dragons.hatchling).toBeUndefined();
-      expect(state.resources.eggs).toEqual(new Decimal(3)); // Should remain unchanged
+      expect(state.resources.eggs).toEqual(new Decimal(0)); // Should remain unchanged
     });
   });
 
@@ -644,7 +658,8 @@ describe('GameStore', () => {
 
       const state = useGameStore.getState();
       expect(state.resources.meat).toEqual(new Decimal(0));
-      expect(state.resources.eggs).toEqual(new Decimal(3)); // Should have 3 starter eggs
+      expect(state.resources.eggs).toEqual(new Decimal(0)); // Should have 0 eggs
+      expect(state.dragons.egg_layer).toBe(1); // Should have 1 starter Egg Layer
       expect(state.settings.autoSave).toBe(true);
     });
   });

@@ -83,12 +83,12 @@ function App() {
                 </button>
               </div>
               <div className="mt-3 text-xs text-lair-400">
-                <p>New Resource Chain:</p>
+                <p>SwarmSim-Style Resource Chain:</p>
                 <ul className="list-disc list-inside mt-1 space-y-1">
-                  <li>Hatch Eggs (3 free) → Hatchlings → Meat</li>
-                  <li>Buy Egg Layers with Meat → More Eggs</li>
+                  <li>Start: 1 Egg Layer → Produces Eggs</li>
+                  <li>Hatch Eggs → Hatchlings → Meat</li>
+                  <li>Buy more Egg Layers with Meat → More Eggs</li>
                   <li>Strategic choice: Hatch vs Save eggs</li>
-                  <li>Reset to test progression balance</li>
                 </ul>
               </div>
             </div>

@@ -105,11 +105,7 @@
       },
       "category": "basic",
       "rarity": 1,
-      "unlockCondition": {
-        "type": "dragon",
-        "target": "hatchling",
-        "value": 3
-      }
+      "unlockCondition": null
     },
     {
       "id": "energy_drake",
