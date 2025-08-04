@@ -50,21 +50,63 @@ export class DragonService {
   }
 
   static calculateCurrentCost(dragon: DragonConfig, owned: number): Decimal {
-    // Use Decimal.js to handle large numbers without overflow
+    // SwarmSim-style cost calculation with progressive scaling
     const baseCost = new Decimal(dragon.baseCost);
-    const multiplier = new Decimal(dragon.costMultiplier);
-    const ownedDecimal = new Decimal(owned);
+    const baseMultiplier = new Decimal(dragon.costMultiplier);
 
-    return baseCost.mul(multiplier.pow(ownedDecimal));
+    // Implement tiered scaling like SwarmSim
+    if (owned <= 100) {
+      // First 100: Normal scaling
+      return baseCost.mul(baseMultiplier.pow(owned));
+    } else if (owned <= 1000) {
+      // 101-1000: Slightly reduced scaling
+      const first100Cost = this.calculateCurrentCost(dragon, 100);
+      const excessOwned = owned - 100;
+      const reducedMultiplier = baseMultiplier.pow(0.9); // 90% of original multiplier
+      return first100Cost.mul(reducedMultiplier.pow(excessOwned));
+    } else if (owned <= 10000) {
+      // 1001-10000: More reduced scaling
+      const first1000Cost = this.calculateCurrentCost(dragon, 1000);
+      const excessOwned = owned - 1000;
+      const reducedMultiplier = baseMultiplier.pow(0.7); // 70% of original multiplier
+      return first1000Cost.mul(reducedMultiplier.pow(excessOwned));
+    } else {
+      // 10000+: Very gentle scaling to prevent runaway costs
+      const first10000Cost = this.calculateCurrentCost(dragon, 10000);
+      const excessOwned = owned - 10000;
+      const gentleMultiplier = new Decimal(1.05); // Very gentle 5% increase
+      return first10000Cost.mul(gentleMultiplier.pow(excessOwned));
+    }
   }
 
   static calculateCost(baseCost: number, costMultiplier: number, owned: number): Decimal {
-    // Simplified cost calculation for use in stores
+    // Use the same tiered scaling as calculateCurrentCost
     const baseCostDecimal = new Decimal(baseCost);
-    const multiplier = new Decimal(costMultiplier);
-    const ownedDecimal = new Decimal(owned);
+    const baseMultiplier = new Decimal(costMultiplier);
 
-    return baseCostDecimal.mul(multiplier.pow(ownedDecimal));
+    // Implement tiered scaling like SwarmSim
+    if (owned <= 100) {
+      // First 100: Normal scaling
+      return baseCostDecimal.mul(baseMultiplier.pow(owned));
+    } else if (owned <= 1000) {
+      // 101-1000: Slightly reduced scaling
+      const first100Cost = this.calculateCost(baseCost, costMultiplier, 100);
+      const excessOwned = owned - 100;
+      const reducedMultiplier = baseMultiplier.pow(0.9); // 90% of original multiplier
+      return first100Cost.mul(reducedMultiplier.pow(excessOwned));
+    } else if (owned <= 10000) {
+      // 1001-10000: More reduced scaling
+      const first1000Cost = this.calculateCost(baseCost, costMultiplier, 1000);
+      const excessOwned = owned - 1000;
+      const reducedMultiplier = baseMultiplier.pow(0.7); // 70% of original multiplier
+      return first1000Cost.mul(reducedMultiplier.pow(excessOwned));
+    } else {
+      // 10000+: Very gentle scaling to prevent runaway costs
+      const first10000Cost = this.calculateCost(baseCost, costMultiplier, 10000);
+      const excessOwned = owned - 10000;
+      const gentleMultiplier = new Decimal(1.05); // Very gentle 5% increase
+      return first10000Cost.mul(gentleMultiplier.pow(excessOwned));
+    }
   }
 
   static calculateTotalProduction(dragon: DragonConfig, owned: number): number {

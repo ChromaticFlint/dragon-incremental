@@ -5,7 +5,13 @@ const suffixes = [
   'UDc', 'DDc', 'TDc', 'QaDc', 'QiDc', 'SxDc', 'SpDc', 'OcDc', 'NoDc', 'Vg',
   'UVg', 'DVg', 'TVg', 'QaVg', 'QiVg', 'SxVg', 'SpVg', 'OcVg', 'NoVg', 'Tg',
   'UTg', 'DTg', 'TTg', 'QaTg', 'QiTg', 'SxTg', 'SpTg', 'OcTg', 'NoTg', 'Qag',
-  'UQag', 'DQag', 'TQag', 'QaQag', 'QiQag', 'SxQag', 'SpQag', 'OcQag', 'NoQag', 'Qig'
+  'UQag', 'DQag', 'TQag', 'QaQag', 'QiQag', 'SxQag', 'SpQag', 'OcQag', 'NoQag', 'Qig',
+  // Extended suffixes for very large numbers
+  'UQig', 'DQig', 'TQig', 'QaQig', 'QiQig', 'SxQig', 'SpQig', 'OcQig', 'NoQig', 'Sxg',
+  'USxg', 'DSxg', 'TSxg', 'QaSxg', 'QiSxg', 'SxSxg', 'SpSxg', 'OcSxg', 'NoSxg', 'Spg',
+  'USpg', 'DSpg', 'TSpg', 'QaSpg', 'QiSpg', 'SxSpg', 'SpSpg', 'OcSpg', 'NoSpg', 'Ocg',
+  'UOcg', 'DOcg', 'TOcg', 'QaOcg', 'QiOcg', 'SxOcg', 'SpOcg', 'OcOcg', 'NoOcg', 'Nog',
+  'UNog', 'DNog', 'TNog', 'QaNog', 'QiNog', 'SxNog', 'SpNog', 'OcNog', 'NoNog', 'Ce'
 ];
 
 export type NumberFormat = 'suffix' | 'scientific' | 'full' | 'engineering';
@@ -19,6 +25,12 @@ export function formatNumber(
   
   if (decimal.isNaN() || !decimal.isFinite()) {
     return '0';
+  }
+
+  // Handle extremely large numbers that would break formatting
+  // Set a much higher limit - 1e10000 (way beyond any reasonable game progression)
+  if (decimal.gt('1e10000')) {
+    return 'Infinity';
   }
 
   if (decimal.lt(0)) {
@@ -64,7 +76,19 @@ function formatWithSuffix(decimal: Decimal, precision: number): string {
 function formatScientific(decimal: Decimal, precision: number): string {
   const exponent = decimal.log(10).floor();
   const mantissa = decimal.div(new Decimal(10).pow(exponent));
-  
+
+  // Handle extremely large exponents by capping them
+  const exponentNumber = exponent.toNumber();
+  if (exponentNumber > 10000) {
+    return 'Infinity'; // For practical purposes, this is infinite
+  }
+
+  // Format exponent with suffix if it's very large
+  if (exponentNumber > 1000) {
+    const exponentFormatted = formatWithSuffix(exponent, 0);
+    return mantissa.toFixed(precision) + 'e' + exponentFormatted;
+  }
+
   return mantissa.toFixed(precision) + 'e' + exponent.toString();
 }
 
