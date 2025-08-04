@@ -3,6 +3,7 @@ import { Decimal } from 'decimal.js';
 import { useGameStore } from '../../stores/gameStore';
 import { formatNumber } from '../../utils/formatNumber';
 import { DragonService } from '../../services/dragonService';
+import { DragonSoulService } from '../../services/dragonSoulService';
 
 interface ResourceDisplayProps {
   resource: string;
@@ -23,7 +24,13 @@ export const ResourceDisplay: React.FC<ResourceDisplayProps> = ({
 
   // Calculate production rate from dragons
   const productionRates = DragonService.getProductionRate(gameState);
-  const rate = productionRates[resource] || 0;
+  let rate = productionRates[resource] || 0;
+
+  // Add Dragon Soul production if this is the dragonSouls resource
+  if (resource === 'dragonSouls') {
+    const dragonSoulRate = DragonSoulService.calculateDragonSoulProduction(gameState);
+    rate = dragonSoulRate.toNumber();
+  }
 
   const displayLabel = label || resource.charAt(0).toUpperCase() + resource.slice(1);
 

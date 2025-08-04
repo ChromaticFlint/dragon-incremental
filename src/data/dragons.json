@@ -163,6 +163,101 @@
         "target": "gold",
         "value": 100
       }
+    },
+    {
+      "id": "ancient_dragon",
+      "name": "Ancient Dragon",
+      "description": "Primordial beings of immense power that have transcended mortal limitations. They command the very essence of dragonkind.",
+      "baseCost": 750000,
+      "costResource": "meat",
+      "costMultiplier": 1.45,
+      "production": {
+        "resource": "elder_dragons",
+        "baseRate": 6.0
+      },
+      "category": "transcendent",
+      "rarity": 5,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "dragon_lord",
+        "value": 10
+      }
+    },
+    {
+      "id": "primordial_dragon",
+      "name": "Primordial Dragon",
+      "description": "The first dragons, born from the cosmic fires of creation itself. Their power shapes reality around them.",
+      "baseCost": 10000000,
+      "costResource": "meat",
+      "costMultiplier": 1.5,
+      "production": {
+        "resource": "ancient_dragons",
+        "baseRate": 7.0
+      },
+      "category": "transcendent",
+      "rarity": 6,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "ancient_dragon",
+        "value": 10
+      }
+    },
+    {
+      "id": "cosmic_dragon",
+      "name": "Cosmic Dragon",
+      "description": "Dragons that have merged with the fabric of space and time. They exist across multiple dimensions simultaneously.",
+      "baseCost": 150000000,
+      "costResource": "meat",
+      "costMultiplier": 1.55,
+      "production": {
+        "resource": "primordial_dragons",
+        "baseRate": 8.0
+      },
+      "category": "transcendent",
+      "rarity": 7,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "primordial_dragon",
+        "value": 10
+      }
+    },
+    {
+      "id": "void_dragon",
+      "name": "Void Dragon",
+      "description": "Entities that have transcended physical existence, dwelling in the spaces between realities. They are the harbingers of evolution.",
+      "baseCost": 2000000000,
+      "costResource": "meat",
+      "costMultiplier": 1.6,
+      "production": {
+        "resource": "cosmic_dragons",
+        "baseRate": 9.0
+      },
+      "category": "transcendent",
+      "rarity": 8,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "cosmic_dragon",
+        "value": 10
+      }
+    },
+    {
+      "id": "dragon_god",
+      "name": "Dragon God",
+      "description": "The ultimate evolution of dragonkind. These beings have achieved true divinity and generate Dragon Souls through their mere existence.",
+      "baseCost": 50000000000,
+      "costResource": "meat",
+      "costMultiplier": 1.65,
+      "production": {
+        "resource": "dragonSouls",
+        "baseRate": 1.0
+      },
+      "category": "divine",
+      "rarity": 9,
+      "unlockCondition": {
+        "type": "dragon",
+        "target": "void_dragon",
+        "value": 10
+      }
     }
   ]
 }

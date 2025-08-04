@@ -3,6 +3,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 import { Decimal } from 'decimal.js';
 import type { GameState, GameSettings, GameStatistics } from '../types/game';
 import { DragonService } from '../services/dragonService';
+import { DragonSoulService } from '../services/dragonSoulService';
 
 // Utility function to ensure all resources are Decimal objects
 const ensureDecimalResources = (resources: Record<string, unknown>): Record<string, Decimal> => {
@@ -43,6 +44,10 @@ const initialGameState: GameState = {
     young_dragons: new Decimal(0),
     adult_dragons: new Decimal(0),
     elder_dragons: new Decimal(0),
+    ancient_dragons: new Decimal(0),
+    primordial_dragons: new Decimal(0),
+    cosmic_dragons: new Decimal(0),
+    void_dragons: new Decimal(0),
     energy: new Decimal(100),
     gold: new Decimal(0),
     dragonSouls: new Decimal(0),
@@ -429,6 +434,12 @@ export const useGameStore = create<GameStore>()(
       // Apply dragon production if configs are provided
       if (dragonConfigs) {
         get().calculateDragonProduction(dragonConfigs);
+      }
+
+      // Calculate and apply Dragon Soul production
+      const dragonSoulProduction = DragonSoulService.calculateDragonSoulProduction(state);
+      if (dragonSoulProduction.gt(0)) {
+        get().addResource('dragonSouls', dragonSoulProduction);
       }
 
       // Update total time
