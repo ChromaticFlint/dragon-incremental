@@ -1,4 +1,5 @@
 import React from 'react';
+import { Decimal } from 'decimal.js';
 import { useGameStore } from '../../stores/gameStore';
 import { formatNumber } from '../../utils/formatNumber';
 import { DragonService } from '../../services/dragonService';
@@ -72,7 +73,7 @@ export const DragonRow: React.FC<DragonRowProps> = ({ dragon, className = '' }) 
               {dragon.name}
             </h3>
             <div className="text-xs text-lair-400">
-              {formatNumber(owned, settings.numberFormat)} owned
+              {formatNumber(new Decimal(owned), settings.numberFormat)} owned
             </div>
           </div>
         </div>
