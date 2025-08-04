@@ -137,9 +137,9 @@ describe('DragonService', () => {
       const cost1 = DragonService.calculateCurrentCost(eggLayer, 1);
       const cost2 = DragonService.calculateCurrentCost(eggLayer, 2);
 
-      expect(cost0).toBe(100); // Base cost
-      expect(cost1).toBe(100 * 1.2); // Base cost * multiplier^1
-      expect(cost2).toBe(100 * Math.pow(1.2, 2)); // Base cost * multiplier^2
+      expect(cost0.toNumber()).toBe(100); // Base cost
+      expect(cost1.toNumber()).toBe(100 * 1.2); // Base cost * multiplier^1
+      expect(cost2.toNumber()).toBe(100 * Math.pow(1.2, 2)); // Base cost * multiplier^2
     });
   });
 

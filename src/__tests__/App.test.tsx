@@ -62,7 +62,7 @@ describe('App', () => {
     expect(screen.getByText('Dragon Incremental')).toBeInTheDocument();
     expect(screen.getByText('Build your dragon empire and conquer the realms')).toBeInTheDocument();
     expect(screen.getByText('Resources')).toBeInTheDocument();
-    expect(screen.getByText('Dragons')).toBeInTheDocument();
+    expect(screen.getByText('Dragon Management')).toBeInTheDocument();
   });
 
   it('should render admin controls', () => {
@@ -131,10 +131,10 @@ describe('App', () => {
   it('should display admin control instructions', () => {
     render(<App />);
 
-    expect(screen.getByText('SwarmSim-Style Resource Chain:')).toBeInTheDocument();
-    expect(screen.getByText('Start: 1 Egg Layer → Produces Eggs')).toBeInTheDocument();
-    expect(screen.getByText('Hatch Eggs → Hatchlings → Meat')).toBeInTheDocument();
-    expect(screen.getByText('Buy more Egg Layers with Meat → More Eggs')).toBeInTheDocument();
-    expect(screen.getByText('Strategic choice: Hatch vs Save eggs')).toBeInTheDocument();
+    expect(screen.getByText('SwarmSim-Style Interface & Progression:')).toBeInTheDocument();
+    expect(screen.getByText('Tabbed interface: Units organized by resource type')).toBeInTheDocument();
+    expect(screen.getByText('Row layout: Efficient information density')).toBeInTheDocument();
+    expect(screen.getByText('Bulk purchasing: Buy Half/Max for rapid scaling')).toBeInTheDocument();
+    expect(screen.getByText('Perfect tier progression: Each tier amplifies the previous')).toBeInTheDocument();
   });
 });

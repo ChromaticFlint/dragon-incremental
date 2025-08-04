@@ -7,7 +7,7 @@
       "description": "A small but eager young dragon that produces meat by hunting small creatures.",
       "baseCost": 1,
       "costResource": "eggs",
-      "costMultiplier": 1.0,
+      "costMultiplier": 1.15,
       "production": {
         "resource": "meat",
         "baseRate": 1.0
@@ -22,7 +22,7 @@
       "description": "A maturing dragon that commands hatchlings to gather more meat efficiently.",
       "baseCost": 15,
       "costResource": "meat",
-      "costMultiplier": 1.15,
+      "costMultiplier": 1.25,
       "production": {
         "resource": "hatchlings",
         "baseRate": 2.0
@@ -41,7 +41,7 @@
       "description": "A powerful adult dragon that leads young dragons in coordinated hunts.",
       "baseCost": 200,
       "costResource": "meat",
-      "costMultiplier": 1.15,
+      "costMultiplier": 1.3,
       "production": {
         "resource": "young_dragons",
         "baseRate": 3.0
@@ -60,7 +60,7 @@
       "description": "An ancient and wise dragon that oversees entire colonies of lesser dragons.",
       "baseCost": 3000,
       "costResource": "meat",
-      "costMultiplier": 1.15,
+      "costMultiplier": 1.35,
       "production": {
         "resource": "adult_dragons",
         "baseRate": 4.0
@@ -79,7 +79,7 @@
       "description": "A legendary dragon ruler that commands vast armies of elder dragons.",
       "baseCost": 50000,
       "costResource": "meat",
-      "costMultiplier": 1.2,
+      "costMultiplier": 1.4,
       "production": {
         "resource": "elder_dragons",
         "baseRate": 5.0

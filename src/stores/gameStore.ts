@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { Decimal } from 'decimal.js';
 import type { GameState, GameSettings, GameStatistics } from '../types/game';
+import { DragonService } from '../services/dragonService';
 
 // Utility function to ensure all resources are Decimal objects
 const ensureDecimalResources = (resources: Record<string, unknown>): Record<string, Decimal> => {
@@ -20,7 +21,7 @@ interface GameStore extends GameState {
   // Actions
   addResource: (resource: string, amount: Decimal) => void;
   spendResource: (resource: string, amount: Decimal) => boolean;
-  canAfford: (costs: Record<string, number>) => boolean;
+  canAfford: (costs: Record<string, number | Decimal>) => boolean;
   purchaseDragon: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }) => boolean;
   purchaseDragonBulk: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }, amount: number) => number;
   calculateMaxAffordable: (dragonId: string, dragonConfig: { baseCost: number; costResource: string; costMultiplier: number }) => number;
@@ -135,14 +136,15 @@ export const useGameStore = create<GameStore>()(
       return false;
     },
 
-    canAfford: (costs: Record<string, number>) => {
+    canAfford: (costs: Record<string, number | Decimal>) => {
       const state = get();
       return Object.entries(costs).every(([resource, cost]) => {
         const currentAmount = state.resources[resource];
         if (!currentAmount) return false;
         // Ensure currentAmount is a Decimal object
         const decimalAmount = currentAmount instanceof Decimal ? currentAmount : new Decimal(currentAmount);
-        return decimalAmount.gte(cost);
+        const decimalCost = cost instanceof Decimal ? cost : new Decimal(cost);
+        return decimalAmount.gte(decimalCost);
       });
     },
 
@@ -150,13 +152,11 @@ export const useGameStore = create<GameStore>()(
       const state = get();
       const owned = state.dragons[dragonId] || 0;
 
-      // Calculate current cost
-      const currentCost = new Decimal(dragonConfig.baseCost).mul(
-        new Decimal(dragonConfig.costMultiplier).pow(owned)
-      );
+      // Calculate current cost using DragonService to handle large numbers
+      const currentCost = DragonService.calculateCost(dragonConfig.baseCost, dragonConfig.costMultiplier, owned);
 
       // Check if we can afford it
-      if (!get().canAfford({ [dragonConfig.costResource]: currentCost.toNumber() })) {
+      if (!get().canAfford({ [dragonConfig.costResource]: currentCost })) {
         return false;
       }
 
@@ -197,9 +197,7 @@ export const useGameStore = create<GameStore>()(
 
       let maxAffordable = 0;
       let totalCost = new Decimal(0);
-      let currentCost = new Decimal(dragonConfig.baseCost).mul(
-        new Decimal(dragonConfig.costMultiplier).pow(owned)
-      );
+      let currentCost = DragonService.calculateCost(dragonConfig.baseCost, dragonConfig.costMultiplier, owned);
 
       // Calculate how many we can afford with geometric series
       // Add safety limit to prevent infinite loops
@@ -209,7 +207,7 @@ export const useGameStore = create<GameStore>()(
       while (totalCost.add(currentCost).lte(availableResource) && iterations < maxIterations) {
         totalCost = totalCost.add(currentCost);
         maxAffordable++;
-        currentCost = currentCost.mul(dragonConfig.costMultiplier);
+        currentCost = DragonService.calculateCost(dragonConfig.baseCost, dragonConfig.costMultiplier, owned + maxAffordable);
         iterations++;
       }
 
@@ -225,9 +223,7 @@ export const useGameStore = create<GameStore>()(
       // Calculate total cost for the amount requested
       let totalCost = new Decimal(0);
       for (let i = 0; i < amount; i++) {
-        const cost = new Decimal(dragonConfig.baseCost).mul(
-          new Decimal(dragonConfig.costMultiplier).pow(owned + i)
-        );
+        const cost = DragonService.calculateCost(dragonConfig.baseCost, dragonConfig.costMultiplier, owned + i);
         totalCost = totalCost.add(cost);
       }
 

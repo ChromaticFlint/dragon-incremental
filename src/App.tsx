@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { Decimal } from 'decimal.js';
 import { useGameStore } from './stores/gameStore';
 import { ResourcePanel } from './components/ui/ResourceDisplay';
-import { DragonPanel } from './components/dragons/DragonCard';
+
+import { SwarmSimInterface } from './components/SwarmSimInterface';
 import { DragonService } from './services/dragonService';
 
 function App() {
@@ -83,12 +84,12 @@ function App() {
                 </button>
               </div>
               <div className="mt-3 text-xs text-lair-400">
-                <p>SwarmSim-Style Resource Chain:</p>
+                <p>SwarmSim-Style Interface & Progression:</p>
                 <ul className="list-disc list-inside mt-1 space-y-1">
-                  <li>Start: 1 Egg Layer → Produces Eggs</li>
-                  <li>Hatch Eggs → Hatchlings → Meat</li>
-                  <li>Buy more Egg Layers with Meat → More Eggs</li>
-                  <li>Strategic choice: Hatch vs Save eggs</li>
+                  <li>Tabbed interface: Units organized by resource type</li>
+                  <li>Row layout: Efficient information density</li>
+                  <li>Bulk purchasing: Buy Half/Max for rapid scaling</li>
+                  <li>Perfect tier progression: Each tier amplifies the previous</li>
                 </ul>
               </div>
             </div>
@@ -96,7 +97,7 @@ function App() {
 
           {/* Right Column - Dragons */}
           <div className="lg:col-span-2">
-            <DragonPanel />
+            <SwarmSimInterface />
           </div>
         </div>
       </div>

@@ -167,9 +167,9 @@ describe('DragonCard', () => {
   it('should call canAfford with correct cost calculation', () => {
     render(<DragonCard dragon={mockDragon} />);
 
-    // Should call canAfford with the calculated cost
+    // Should call canAfford with the calculated cost (now a Decimal)
     expect(mockGameStore.canAfford).toHaveBeenCalledWith({
-      eggs: expect.any(Number),
+      eggs: expect.anything(), // Can be either Number or Decimal
     });
   });
 
