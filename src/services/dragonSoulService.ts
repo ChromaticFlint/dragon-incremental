@@ -10,13 +10,13 @@ export class DragonSoulService {
    * Higher tier dragons generate more Dragon Souls
    */
   private static readonly DRAGON_SOUL_RATES: Record<string, number> = {
-    elder_dragon: 0.01,      // 0.01 Dragon Souls per second per Elder Dragon
-    dragon_lord: 0.05,       // 0.05 Dragon Souls per second per Dragon Lord
-    ancient_dragon: 0.1,     // 0.1 Dragon Souls per second per Ancient Dragon
-    primordial_dragon: 0.25, // 0.25 Dragon Souls per second per Primordial Dragon
-    cosmic_dragon: 0.5,      // 0.5 Dragon Souls per second per Cosmic Dragon
-    void_dragon: 1.0,        // 1.0 Dragon Souls per second per Void Dragon
-    dragon_god: 2.0,         // 2.0 Dragon Souls per second per Dragon God
+    elder_dragon: 0.1,       // 0.1 Dragon Souls per second per Elder Dragon
+    dragon_lord: 0.5,        // 0.5 Dragon Souls per second per Dragon Lord
+    ancient_dragon: 1.0,     // 1.0 Dragon Souls per second per Ancient Dragon
+    primordial_dragon: 2.5,  // 2.5 Dragon Souls per second per Primordial Dragon
+    cosmic_dragon: 5.0,      // 5.0 Dragon Souls per second per Cosmic Dragon
+    void_dragon: 10.0,       // 10.0 Dragon Souls per second per Void Dragon
+    dragon_god: 20.0,        // 20.0 Dragon Souls per second per Dragon God
   };
 
   /**
@@ -59,8 +59,8 @@ export class DragonSoulService {
     const dragonSouls = gameState.resources.dragonSouls || new Decimal(0);
     const hasHighTierDragons = gameState.dragons.dragon_lord && gameState.dragons.dragon_lord >= 1;
     
-    // Require at least 100 Dragon Souls and at least 1 Dragon Lord to evolve
-    return dragonSouls.gte(100) && hasHighTierDragons;
+    // Require at least 25 Dragon Souls and at least 1 Dragon Lord to evolve
+    return dragonSouls.gte(25) && hasHighTierDragons;
   }
 
   /**
@@ -68,8 +68,8 @@ export class DragonSoulService {
    * Based on SwarmSim's ascension formula
    */
   static calculateEvolutionCost(gameState: GameState): Decimal {
-    const evolutionCount = gameState.statistics.prestigeCount || 0;
-    const energySpent = gameState.resources.energy ? 
+    const evolutionCount = gameState.statistics?.prestigeCount || 0;
+    const energySpent = gameState.resources.energy ?
       new Decimal(1000).sub(gameState.resources.energy) : new Decimal(0);
 
     // Base cost: 1,000,000 energy
@@ -87,7 +87,7 @@ export class DragonSoulService {
    * Based on SwarmSim's breakpoint calculation
    */
   static getOptimalEvolutionPoint(gameState: GameState): Decimal {
-    const evolutionCount = gameState.statistics.prestigeCount || 0;
+    const evolutionCount = gameState.statistics?.prestigeCount || 0;
     
     // Simplified breakpoint calculation
     // Spend energy until the cost reduction equals the energy spent

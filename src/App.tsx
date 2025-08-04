@@ -4,6 +4,7 @@ import { useGameStore } from './stores/gameStore';
 import { ResourcePanel } from './components/ui/ResourceDisplay';
 
 import { SwarmSimInterface } from './components/SwarmSimInterface';
+import { EvolutionPanel } from './components/evolution/EvolutionPanel';
 import { DragonService } from './services/dragonService';
 
 function App() {
@@ -60,6 +61,9 @@ function App() {
           {/* Left Column - Resources */}
           <div className="lg:col-span-1">
             <ResourcePanel className="mb-6" />
+
+            {/* Evolution Panel */}
+            <EvolutionPanel />
 
             {/* Admin controls for testing */}
             <div className="card">
